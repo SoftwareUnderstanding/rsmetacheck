@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+somef_outputs
+pitfalls_outputs
+analysis_results.json
+.env
