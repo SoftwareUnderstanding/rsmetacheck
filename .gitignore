@@ -83,6 +83,7 @@ poetry.lock
 .env
 .env.*
 *.env
+!.env.example
 
 # Logs
 *.log
