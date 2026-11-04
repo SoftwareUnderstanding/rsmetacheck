@@ -14,6 +14,8 @@ def extract_version_from_download_url(url: str) -> str:
         r'/archive/(?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)\.',  # /archive/3.8.0. or /archive/v1.2.3.
         r'/archive/(?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)$',
         # /archive/3.8.0 or /archive/v1.2.3 (end of string)
+        r'/refs/tags/(?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)',  # /archive/refs/tags/v1.2.3.zip
+        r'/releases/tag/(?:[^/]*?[-_])?(?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)$',  # /releases/tag/name-1.2.3
         r'[-_](?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)\.',  # -3.8.0.tar.gz or _v1.2.3.zip
         r'/(?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)/[^/]*$',  # /3.8.0/something
     ]
@@ -67,7 +69,9 @@ def get_latest_release_version(somef_data: Dict) -> str:
         if "tag" in result and result["tag"]:
             tag = result["tag"].strip()
             if tag:
-                return normalize_version(tag)
+                version_match = re.search(r'(?:v)?(\d+\.\d+(?:\.\d+)?(?:[a-zA-Z0-9\-\.]*)?)', tag)
+                if version_match:
+                    return normalize_version(version_match.group(1))
 
         if "name" in result and result["name"]:
             name = result["name"]
@@ -119,14 +123,16 @@ def detect_outdated_download_url_pitfall(somef_data: Dict, file_name: str) -> Di
     if not download_version:
         return result
 
+    normalized_download_version = normalize_version(download_version)
+    if not normalized_download_version:
+        return result
+
     latest_version = get_latest_release_version(somef_data)
     if not latest_version:
         return result
 
-    normalized_download_version = normalize_version(download_version)
     normalized_latest_version = normalize_version(latest_version)
-
-    if not normalized_download_version or not normalized_latest_version:
+    if not normalized_latest_version:
         return result
 
     if normalized_download_version != normalized_latest_version:

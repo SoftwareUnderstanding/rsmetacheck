@@ -1,8 +1,10 @@
 from typing import Dict
 import requests
 import re
+import time
 from urllib.parse import urlparse
 from rsmetacheck.utils.pitfall_utils import extract_metadata_source_filename
+from rsmetacheck.utils.fetch_utils import classify_status, HARD_FAILURE
 
 
 def is_valid_url_format(url: str) -> bool:
@@ -27,40 +29,78 @@ def is_valid_url_format(url: str) -> bool:
 
 def check_url_status(url: str, timeout: int = 10) -> Dict:
     """
-    Check if URL returns a valid response (not 404 or other error).
+    Check if URL returns a valid response.
+
+    Only definitive failures (404/410 and DNS/connection errors) are treated as
+    invalid; transient failures (rate limiting, timeouts, server errors) are
+    marked inconclusive so the detector does not produce false positives.
     """
     result = {
         "is_accessible": False,
         "status_code": None,
-        "error": None
+        "error": None,
+        "verdict": "inconclusive",
     }
 
     if not is_valid_url_format(url):
         result["error"] = "Invalid URL format"
+        result["verdict"] = HARD_FAILURE
         return result
 
     if url.startswith(('git+', 'git://', 'svn+', 'hg+', 'bzr+')):
         result["is_accessible"] = True
         result["status_code"] = 200
+        result["verdict"] = "accessible"
         return result
 
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
 
-        response = requests.get(url, timeout=timeout, headers=headers, allow_redirects=True)
-        result["status_code"] = response.status_code
+    status_code = None
+    error = None
+    for attempt in range(3):
+        try:
+            response = requests.get(url, timeout=timeout, headers=headers, allow_redirects=True)
+            status_code = response.status_code
+            error = None
+            if status_code == 429 and attempt < 2:
+                time.sleep(1 + attempt)
+                continue
+            break
+        except requests.exceptions.RequestException as e:
+            status_code = None
+            error = str(e)
+            if attempt < 2:
+                time.sleep(0.5)
+                continue
+            break
+        except Exception as e:
+            status_code = None
+            error = f"Unexpected error: {str(e)}"
+            break
 
-        if (200 <= response.status_code < 300) or response.status_code == 301:
-            result["is_accessible"] = True
-
-    except requests.exceptions.RequestException as e:
-        result["error"] = str(e)
-    except Exception as e:
-        result["error"] = f"Unexpected error: {str(e)}"
+    result["status_code"] = status_code
+    result["error"] = error
+    result["verdict"] = classify_status(status_code, error)
+    result["is_accessible"] = result["verdict"] == "accessible"
 
     return result
+
+
+def _is_invalid_url(url_status: Dict) -> bool:
+    """True if a URL is definitively invalid (hard failure).
+
+    Accepts both the new status dict (with a ``verdict``) and the legacy shape
+    (only ``status_code``/``error``) produced by older test doubles.
+    """
+    verdict = url_status.get("verdict")
+    if verdict:
+        return verdict == HARD_FAILURE
+    if url_status.get("status_code") in (404, 410):
+        return True
+    error = url_status.get("error")
+    return isinstance(error, str) and "Invalid URL format" in error
 
 
 def extract_urls_from_requirements(requirement_text: str) -> list:
@@ -130,7 +170,7 @@ def detect_invalid_software_requirement_pitfall(somef_data: Dict, file_name: str
                 if isinstance(req_value, str) and is_valid_url_format(req_value):
                     url_status = check_url_status(req_value)
 
-                    if not url_status["is_accessible"]:
+                    if _is_invalid_url(url_status):
                         source_filename = extract_metadata_source_filename(source)
                         if result["source"] is None:
                             result["source"] = source
@@ -163,7 +203,7 @@ def detect_invalid_software_requirement_pitfall(somef_data: Dict, file_name: str
                             for url in urls:
                                 url_status = check_url_status(url)
 
-                                if not url_status["is_accessible"]:
+                                if _is_invalid_url(url_status):
                                     invalid_urls.append({
                                         "url": url,
                                         "status_code": url_status["status_code"],

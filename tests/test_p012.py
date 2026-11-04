@@ -31,6 +31,11 @@ class TestExtractVersionFromDownloadUrl:
         ("https://example.com/releases/3.8.0/package.tar.gz", "3.8.0"),
         ("https://example.com/downloads/v1.2.3/file.zip", "1.2.3"),
 
+        # GitHub refs/tags and releases/tag URL forms (real-world cases)
+        ("https://github.com/umr-amap/StormR/archive/refs/tags/v0.2.2.zip", "0.2.2"),
+        ("https://github.com/vrineau/Agatta/archive/refs/tags/v0.8.1.tar.gz", "0.8.1"),
+        ("https://github.com/heuermh/sea-eagle/releases/tag/sea-eagle-0.6", "0.6"),
+
         # No version
         ("https://github.com/user/repo/archive/main.tar.gz", None),
         ("https://example.com/downloads/package.tar.gz", None),
@@ -152,6 +157,19 @@ class TestGetLatestReleaseVersion:
                 "2.0.0"
         ),
 
+        # Prefixed tag (name-version format, e.g. sea-eagle-0.10)
+        (
+                {
+                    "releases": [{
+                        "result": {
+                            "tag": "sea-eagle-0.10",
+                            "name": "sea-eagle 0.10"
+                        }
+                    }]
+                },
+                "0.10"
+        ),
+
         # Empty tag, use name
         (
                 {
@@ -265,6 +283,29 @@ class TestDetectOutdatedDownloadUrlPitfall:
                     False,
                     None,
                     None
+            ),
+
+            # downloadURL matches a stale codemeta version but release is newer (refs/tags URL form)
+            (
+                    {
+                        "download_url": [{
+                            "source": "repository/codemeta.json",
+                            "technique": "code_parser",
+                            "result": {"value": "https://github.com/user/repo/archive/refs/tags/v0.2.2.zip"}
+                        }],
+                        "version": [{
+                            "source": "repository/codemeta.json",
+                            "technique": "code_parser",
+                            "result": {"value": "0.2.2"}
+                        }],
+                        "releases": [{
+                            "result": {"tag": "v0.3.0"}
+                        }]
+                    },
+                    "test_repo.json",
+                    True,
+                    "0.2.2",
+                    "0.3.0"
             ),
 
             # REMOVED: Outdated download URL test case with v2.0.0

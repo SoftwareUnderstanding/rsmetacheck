@@ -27,12 +27,15 @@ def detect_license_no_version_pitfall(somef_data: Dict, file_name: str) -> Dict:
     metadata_sources = ["codemeta.json", "DESCRIPTION", "composer.json", "package.json", "pom.xml", "pyproject.toml",
                         "requirements.txt", "setup.py"]
 
+    # Optional "v"/"version" token so that "GPL v3.0", "LGPL v3.0" etc. are
+    # correctly recognized as versioned (not flagged as missing a version).
+    _V = r'(?:\s*v(?:ersion)?\.?\s*)?'
     versioned_patterns = {
-        "GPL": r"\bGPL[-\s]?\(?\s*(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
-        "LGPL": r"\bLGPL[-\s]?\(?\s*(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
-        "AGPL": r"\bAGPL[-\s]?\(?\s*(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
-        "Apache": r"\bApache[-\s]?\(?\s*(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
-        "CC": r"\bCC[- ]BY[-\s]?\(?\s*(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
+        "GPL": rf"\bGPL[-\s]?\(?{_V}(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
+        "LGPL": rf"\bLGPL[-\s]?\(?{_V}(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
+        "AGPL": rf"\bAGPL[-\s]?\(?{_V}(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
+        "Apache": rf"\bApache[-\s]?\(?{_V}(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
+        "CC": rf"\bCC[- ]BY[-\s]?\(?{_V}(?:>=?|<=?|>|<|=)?\s*\d+(\.\d+)?\)?",
         "BSD": r"\bBSD[-\s]\d+[-\s]Clause"
     }
 

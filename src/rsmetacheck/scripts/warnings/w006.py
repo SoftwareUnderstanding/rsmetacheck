@@ -2,6 +2,7 @@ from typing import Dict, List
 import re
 
 from rsmetacheck.utils.pitfall_utils import extract_metadata_source_filename
+from rsmetacheck.utils.fetch_utils import fetch_text
 
 
 def is_valid_identifier(identifier: str) -> bool:
@@ -43,6 +44,18 @@ def is_valid_identifier(identifier: str) -> bool:
         return False
 
     return True
+
+
+def _is_strict_identifier(value) -> bool:
+    """True only for an actual URL or DOI (not citation prose)."""
+    if not value or not isinstance(value, str):
+        return False
+    v = value.strip()
+    if re.match(r'^https?://\S+$', v, re.IGNORECASE):
+        return True
+    if re.match(r'^(doi:)?10\.\d{4,9}/\S+$', v, re.IGNORECASE):
+        return True
+    return False
 
 
 def has_doi_in_other_sources(identifier_entries: List[Dict]) -> bool:
@@ -113,18 +126,23 @@ def detect_identifier_name_warning(somef_data: Dict, file_name: str) -> Dict:
 
         if is_codemeta:
             if "result" in entry and "value" in entry["result"]:
-                if codemeta_identifier is None:
-                    raw_value = entry["result"]["value"]
+                # SoMEF < 0.11.5 kept an identifier array as one list value;
+                # >= 0.11.5 emits one entry per element, so validity and the
+                # reported value cannot be decided from the first entry alone.
+                # Warn only when NO codemeta identifier is a real unique id,
+                # and report the first one that is a bare name.
+                raw_value = entry["result"]["value"]
+                items = raw_value if isinstance(raw_value, list) else [raw_value]
+                for item in items:
+                    if not isinstance(item, str):
+                        continue
+                    if is_valid_identifier(item):
+                        codemeta_has_valid_id = True
+                    elif codemeta_identifier is None:
+                        codemeta_identifier = item
+                        codemeta_source = source
+                if codemeta_source is None:
                     codemeta_source = source
-                    if isinstance(raw_value, list):
-                        codemeta_has_valid_id = any(
-                            isinstance(item, str) and is_valid_identifier(item)
-                            for item in raw_value
-                        )
-                        codemeta_identifier = ", ".join(str(item) for item in raw_value) if raw_value else None
-                    else:
-                        codemeta_identifier = raw_value
-                    break
 
     for entry in identifier_entries:
         source = entry.get("source", "")
@@ -150,6 +168,40 @@ def detect_identifier_name_warning(somef_data: Dict, file_name: str) -> Dict:
                 if other_identifier is None:
                     other_identifier = identifier_value
                     other_source = source
+
+    # SoMEF 0.11.2 stores citation DOIs under `citation`, not `identifier`.
+    if not other_identifier:
+        for entry in somef_data.get("citation") or []:
+            result_data = entry.get("result") or {}
+            for candidate in (result_data.get("value"), result_data.get("url"), result_data.get("doi")):
+                if _is_strict_identifier(candidate):
+                    other_identifiers.append({"value": candidate, "source": entry.get("source", "citation")})
+                    other_identifier = candidate
+                    other_source = entry.get("source", "citation")
+                    break
+            if other_identifier:
+                break
+
+    # Fallback: look for a DOI/Zenodo badge in the README itself.
+    if not other_identifier:
+        readme_entries = somef_data.get("readme_url")
+        if isinstance(readme_entries, list):
+            for entry in readme_entries:
+                url = (entry.get("result") or {}).get("value")
+                if not isinstance(url, str):
+                    continue
+                text = fetch_text(url)
+                if not text:
+                    continue
+                match = re.search(
+                    r'10\.\d{4,9}/[^\s"\'<>)\]]+|zenodo\.org/badge/[^\s"\'<>)\]]+',
+                    text, re.IGNORECASE)
+                if match:
+                    value = match.group(0)
+                    other_identifiers.append({"value": value, "source": url})
+                    other_identifier = value
+                    other_source = url
+                    break
 
     result["codemeta_identifier"] = codemeta_identifier
     result["codemeta_source"] = codemeta_source

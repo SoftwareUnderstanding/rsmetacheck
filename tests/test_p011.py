@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from rsmetacheck.scripts.pitfalls.p011 import (
     is_valid_issue_tracker_format,
     detect_issue_tracker_format_pitfall
@@ -109,7 +110,9 @@ class TestDetectIssueTrackerFormatPitfall:
                 "result": {"value": "https://github.com/user/repo/issues"}
             }]
         }
-        result = detect_issue_tracker_format_pitfall(somef_data, "test.json")
+        with patch('rsmetacheck.scripts.pitfalls.p011._is_unreachable',
+                   return_value={"status_code": 200, "error": None, "verdict": "accessible"}):
+            result = detect_issue_tracker_format_pitfall(somef_data, "test.json")
         assert result["has_pitfall"] is False
 
     def test_invalid_format_has_pitfall(self):
@@ -245,7 +248,9 @@ class TestDetectIssueTrackerFormatPitfall:
                     "result": {"value": url}
                 }]
             }
-            result = detect_issue_tracker_format_pitfall(somef_data, "test.json")
+            with patch('rsmetacheck.scripts.pitfalls.p011._is_unreachable',
+                       return_value={"status_code": 200, "error": None, "verdict": "accessible"}):
+                result = detect_issue_tracker_format_pitfall(somef_data, "test.json")
             assert result["has_pitfall"] is False, f"URL should be valid: {url}"
 
     def test_wrong_technique_still_matches_source(self):
