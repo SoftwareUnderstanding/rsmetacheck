@@ -15,7 +15,7 @@
     }
   ],
   "codeRepository": "git+https://github.com/SoftwareUnderstanding/rsmetacheck.git",
-  "dateModified": "2026-09-09",
+  "dateModified": "2026-11-04",
   "description": "Automated tool to detect metadata quality pitfalls in software repositories (Python, Java, C++, etc.). Analyzes SoMEF output files for version mismatches, license issues, broken URLs, and more. ",
   "downloadUrl": "https://github.com/SoftwareUnderstanding/rsmetacheck/archive/refs/heads/main.tar.gz",
   "keywords": ["codemeta", "pitfalls", "metadata", "analysis"],
@@ -23,7 +23,7 @@
   "name": "rsmetacheck",
   "operatingSystem": "Linux",
   "programmingLanguage": "Python",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "developmentStatus": "active",
   "issueTracker": "https://github.com/SoftwareUnderstanding/rsmetacheck/issues"
 }
