@@ -1,29 +1,87 @@
 import re
 from typing import Dict, Optional
 
+from rsmetacheck.utils.fetch_utils import fetch_text, fetch_license_file
+
 
 def extract_license_from_file(somef_data: Dict) -> Optional[Dict[str, str]]:
     """
-    Extract license content from LICENSE file in SoMEF output.
-    Returns a dict with source and content, or None if not found.
-    """
-    if "license" not in somef_data:
-        return None
+    Extract the first license file entry's content from SoMEF output.
 
-    license_entries = somef_data["license"]
+    Kept for backward compatibility (the detector itself scans *all* license
+    entries via ``detect_copyright_only_license``).
+    """
+    license_entries = somef_data.get("license")
     if not isinstance(license_entries, list):
         return None
 
     for entry in license_entries:
-        if "source" in entry:
-            source = entry["source"]
-            if "LICENSE" in source.upper() and "result" in entry and "value" in entry["result"]:
-                return {
-                    "source": source,
-                    "content": entry["result"]["value"]
-                }
+        source = entry.get("source")
+        source_str = str(source) if source is not None else ""
+        if "LICENSE" not in source_str.upper():
+            continue
+        result = entry.get("result") or {}
+        value = result.get("value")
+        if not value:
+            return None
+        return {"source": source_str, "content": value}
 
     return None
+
+
+def detect_copyright_only_license(somef_data: Dict, file_name: str) -> Dict:
+    """
+    Detect copyright-only license pitfall for a single repository.
+    Returns detection result with pitfall info or None if no pitfall found.
+
+    Every license file entry is evaluated (a repository may ship both a
+    copyright-only ``LICENSE`` and a full ``LICENSE.md``), and the file text is
+    fetched from the source URL when SoMEF only kept the SPDX id.
+    """
+    result = {
+        "has_pitfall": False,
+        "file_name": file_name,
+        "license_source": None,
+        "is_copyright_only": False
+    }
+
+    license_entries = somef_data.get("license")
+    if not isinstance(license_entries, list):
+        return result
+
+    for entry in license_entries:
+        source = entry.get("source")
+        source_str = str(source) if source else ""
+        if not re.search(r'licen[cs]e|copying|copyright|unlicense', source_str, re.IGNORECASE):
+            continue
+
+        if result["license_source"] is None:
+            result["license_source"] = source_str
+
+        content = None
+        if source_str.startswith(("http://", "https://")):
+            content = fetch_text(source_str)
+        if content is None:
+            value = (entry.get("result") or {}).get("value")
+            if isinstance(value, str):
+                content = value
+
+        if content and check_copyright_only_license(content):
+            result["has_pitfall"] = True
+            result["is_copyright_only"] = True
+            result["license_source"] = source_str or content[:120]
+            break
+
+    # Fallback: no license-file entry was available in the SoMEF output.
+    if result["license_source"] is None:
+        url, content = fetch_license_file(somef_data)
+        if url and content:
+            result["license_source"] = url
+            if check_copyright_only_license(content):
+                result["has_pitfall"] = True
+                result["is_copyright_only"] = True
+
+    return result
 
 
 def check_copyright_only_license(license_content: str) -> bool:
@@ -100,30 +158,3 @@ def check_copyright_only_license(license_content: str) -> bool:
             return True
 
     return False
-
-
-def detect_copyright_only_license(somef_data: Dict, file_name: str) -> Dict:
-    """
-    Detect copyright-only license pitfall for a single repository.
-    Returns detection result with pitfall info or None if no pitfall found.
-    """
-    result = {
-        "has_pitfall": False,
-        "file_name": file_name,
-        "license_source": None,
-        "is_copyright_only": False
-    }
-
-    license_info = extract_license_from_file(somef_data)
-
-    if license_info:
-        license_content = license_info["content"]
-        result["license_source"] = license_info["source"]
-
-        is_copyright_only = check_copyright_only_license(license_content)
-
-        if is_copyright_only:
-            result["has_pitfall"] = True
-            result["is_copyright_only"] = True
-
-    return result

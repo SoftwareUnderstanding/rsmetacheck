@@ -70,7 +70,15 @@ def get_other_metadata_versions(somef_data: Dict) -> list:
         if "codemeta.json" in source:
             continue
 
-        if technique == "code_parser" or any(src in source.lower() for src in metadata_sources):
+        # Only versions declared in a known package/metadata manifest count as
+        # "other" versions. Accepting any code_parser entry let unrelated
+        # parsers feed this comparison - notably SoMEF >= 0.11.5's .zenodo.json,
+        # whose deposit version legitimately differs from the package version.
+        # Entries with no provenance at all cannot be filtered by file name and
+        # are still accepted (source matching is case-insensitive: manifest
+        # names in the list are not all lower-case, e.g. "DESCRIPTION").
+        has_known_source = any(src.lower() in source.lower() for src in metadata_sources)
+        if has_known_source or (technique == "code_parser" and not source.strip()):
             if "result" in entry and "value" in entry["result"]:
                 other_versions.append({
                     "version": entry["result"]["value"],

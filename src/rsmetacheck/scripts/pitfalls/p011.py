@@ -1,5 +1,10 @@
 from typing import Dict
+import time
 from urllib.parse import urlparse
+
+import requests
+
+from rsmetacheck.utils.fetch_utils import classify_status, HARD_FAILURE
 
 
 def is_valid_issue_tracker_format(url: str) -> bool:
@@ -35,17 +40,53 @@ def is_valid_issue_tracker_format(url: str) -> bool:
     return False
 
 
+def _is_unreachable(url: str, timeout: int = 10) -> Dict:
+    """Return status/error for an issue tracker URL (only hard failures matter)."""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    status_code = None
+    error = None
+    for attempt in range(3):
+        try:
+            response = requests.get(url, timeout=timeout, headers=headers, allow_redirects=True)
+            status_code = response.status_code
+            error = None
+            if status_code == 429 and attempt < 2:
+                time.sleep(1 + attempt)
+                continue
+            break
+        except requests.exceptions.RequestException as e:
+            status_code = None
+            error = str(e)
+            if attempt < 2:
+                time.sleep(0.5)
+                continue
+            break
+        except Exception as e:
+            status_code = None
+            error = f"Unexpected error: {str(e)}"
+            break
+    return {
+        "status_code": status_code,
+        "error": error,
+        "verdict": classify_status(status_code, error),
+    }
+
+
 def detect_issue_tracker_format_pitfall(somef_data: Dict, file_name: str) -> Dict:
     """
-    Detect when codemeta.json IssueTracker URL does not follow
-    a recognized issue tracker format.
+    Detect when codemeta.json IssueTracker URL does not follow a recognized
+    format, or is a dead link (404/410/unresolvable host).
     """
     result = {
         "has_pitfall": False,
         "file_name": file_name,
         "issue_url": None,
         "source": None,
-        "format_violation": None
+        "format_violation": None,
+        "status_code": None,
+        "error": None,
     }
 
     if "issue_tracker" not in somef_data:
@@ -68,6 +109,16 @@ def detect_issue_tracker_format_pitfall(somef_data: Dict, file_name: str) -> Dic
                     result["issue_url"] = issue_url
                     result["source"] = source
                     result["format_violation"] = "URL does not match recognized issue tracker format"
+                    break
+
+                url_status = _is_unreachable(issue_url)
+                if url_status.get("verdict") == HARD_FAILURE:
+                    result["has_pitfall"] = True
+                    result["issue_url"] = issue_url
+                    result["source"] = source
+                    result["status_code"] = url_status["status_code"]
+                    result["error"] = url_status["error"]
+                    result["format_violation"] = "Issue tracker URL is not reachable"
                     break
 
     return result

@@ -45,6 +45,15 @@ def detect_multiple_requirements_in_string(requirement_string: str) -> List[str]
     # Clean the string
     req_str = requirement_string.strip()
 
+    # Not a package list: Software Heritage identifiers, URLs/VCS refs, and
+    # natural-language prose ("at least one of ... e.g. NEURON, NEST, ...").
+    if re.search(r'\bswh:1:', req_str):
+        return []
+    if req_str.startswith(('http://', 'https://', 'git+', 'git://')):
+        return []
+    if re.search(r'\b(?:e\.g\.|i\.e\.|such as|at least one|for example)\b', req_str, re.IGNORECASE):
+        return []
+
     # Patterns that might indicate multiple requirements
     if bool(re.search(r'\b(npm|bash|cd|pip|install)\b', req_str.lower())):
         return []

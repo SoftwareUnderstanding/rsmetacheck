@@ -51,11 +51,18 @@ def detect_raw_swhid_pitfall(somef_data: Dict, file_name: str) -> Dict:
             if "result" in entry and "value" in entry["result"]:
                 identifier_value = entry["result"]["value"]
 
-                if is_raw_swhid(identifier_value):
-                    result["has_pitfall"] = True
-                    result["identifier_value"] = identifier_value
-                    result["source"] = source
-                    result["is_raw_swhid"] = True
+                # SoMEF < 0.11.5 kept an identifier array as a single list value;
+                # >= 0.11.5 emits one entry per element. Accept both shapes.
+                candidates = identifier_value if isinstance(identifier_value, list) else [identifier_value]
+
+                for candidate in candidates:
+                    if is_raw_swhid(candidate):
+                        result["has_pitfall"] = True
+                        result["identifier_value"] = candidate
+                        result["source"] = source
+                        result["is_raw_swhid"] = True
+                        break
+                if result["has_pitfall"]:
                     break
 
     return result

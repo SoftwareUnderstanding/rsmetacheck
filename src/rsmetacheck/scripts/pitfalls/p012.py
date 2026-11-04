@@ -78,6 +78,25 @@ def get_latest_release_version(somef_data: Dict) -> str:
     return None
 
 
+def get_codemeta_version(somef_data: Dict) -> str:
+    """
+    Get the version declared in codemeta.json (from SoMEF output).
+    """
+    version_entries = somef_data.get("version")
+    if not isinstance(version_entries, list):
+        return None
+
+    for entry in version_entries:
+        source = str(entry.get("source", ""))
+        technique = entry.get("technique", "")
+        if "codemeta.json" in source.lower() or (
+                technique == "code_parser" and "codemeta" in source.lower()):
+            value = (entry.get("result") or {}).get("value")
+            if value:
+                return normalize_version(str(value))
+    return None
+
+
 def detect_outdated_download_url_pitfall(somef_data: Dict, file_name: str) -> Dict:
     """
     Detect when codemeta.json downloadURL is outdated compared to latest release.
@@ -119,14 +138,23 @@ def detect_outdated_download_url_pitfall(somef_data: Dict, file_name: str) -> Di
     if not download_version:
         return result
 
+    normalized_download_version = normalize_version(download_version)
+    if not normalized_download_version:
+        return result
+
+    # If the download URL matches the version the package itself declares
+    # (codemeta.json), it is not outdated relative to the package, even if the
+    # GitHub Releases list is incomplete for that tag.
+    codemeta_version = get_codemeta_version(somef_data)
+    if codemeta_version and normalized_download_version == codemeta_version:
+        return result
+
     latest_version = get_latest_release_version(somef_data)
     if not latest_version:
         return result
 
-    normalized_download_version = normalize_version(download_version)
     normalized_latest_version = normalize_version(latest_version)
-
-    if not normalized_download_version or not normalized_latest_version:
+    if not normalized_latest_version:
         return result
 
     if normalized_download_version != normalized_latest_version:
