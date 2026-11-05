@@ -1,5 +1,6 @@
 from typing import Dict
 import re
+from rsmetacheck.utils.fetch_utils import is_root_codemeta_url, is_vendored_source
 
 def normalize_repository_url(url: str) -> str:
     """
@@ -55,8 +56,17 @@ def detect_different_repository_pitfall(somef_data: Dict, file_name: str) -> Dic
             repo_url = entry["result"]["value"]
 
             if technique == "GitHub_API":
+                if isinstance(repo_url, str) and re.search(r'/commit/[0-9a-f]{7,40}$', repo_url):
+                    continue
                 github_api_url = repo_url
             elif any(src in source.lower() for src in ["codemeta.json"]):
+                # Only consider the root-level codemeta.json. Nested ones are
+                # not the project's metadata and cause false positives.
+                source_str = str(source)
+                if not is_root_codemeta_url(source_str):
+                    continue
+                if is_vendored_source(source_str):
+                    continue
                 metadata_urls.append({
                     "url": repo_url,
                     "source": source,

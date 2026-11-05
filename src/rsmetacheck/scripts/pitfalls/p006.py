@@ -1,5 +1,9 @@
 from typing import Dict
+import re
+
 from rsmetacheck.utils.pitfall_utils import extract_metadata_source_filename
+from rsmetacheck.utils.fetch_utils import find_source_url, fetch_text
+
 
 def is_local_file_license(license_value: str) -> bool:
     """
@@ -8,9 +12,14 @@ def is_local_file_license(license_value: str) -> bool:
     if not license_value or not isinstance(license_value, str):
         return False
 
+    license_value = re.sub(r'^\s*licen[cs]e\s+file\s*:?\s*', '', license_value, flags=re.IGNORECASE)
+
     license_lower = license_value.lower().strip()
 
     if license_lower.startswith('http://') or license_lower.startswith('https://'):
+        return False
+    if 'http' in license_lower:
+        # e.g. "GPL version 3, http://www.gnu.org/licenses/gpl-3.0.txt" names the license
         return False
 
     if license_value.startswith('./') or license_value.startswith('../'):
@@ -65,7 +74,13 @@ def detect_local_file_license_pitfall(somef_data: Dict, file_name: str) -> Dict:
         technique = entry.get("technique", "")
         source = entry.get("source", "")
 
-        if technique == "code_parser" or any(src in source.lower() for src in metadata_sources):
+        # Require the licence value to come from a metadata manifest. The bare
+        # `technique == "code_parser"` branch also matched non-manifest parsers
+        # (e.g. SoMEF >= 0.11.5 parses .zenodo.json), which reports licence
+        # identifiers rather than a path/name that this check is about. Entries
+        # that carry no provenance at all are still accepted.
+        has_known_source = any(src in source.lower() for src in metadata_sources)
+        if has_known_source or (technique == "code_parser" and not source.strip()):
             if "result" in entry and "value" in entry["result"]:
                 license_value = entry["result"]["value"]
 
@@ -78,5 +93,27 @@ def detect_local_file_license_pitfall(somef_data: Dict, file_name: str) -> Dict:
                     result["metadata_source_files"].append(source_filename)
                     result["has_pitfall"] = True
                     result["is_local_file"] = True
+
+    if not result["has_pitfall"]:
+        pyproject_url = find_source_url(somef_data, "pyproject.toml")
+        if pyproject_url:
+            text = fetch_text(pyproject_url)
+            if text:
+                license_match = re.search(r'^\s*license\s*=\s*(.*)$', text, re.MULTILINE)
+                if license_match:
+                    raw = license_match.group(1).strip()
+                    file_match = re.search(r'file\s*=\s*["\']([^"\']+)["\']', raw)
+                    if file_match:
+                        value = file_match.group(1)
+                    else:
+                        simple = re.search(r'["\']([^"\']+)["\']', raw)
+                        value = simple.group(1) if simple else raw
+                    if value and is_local_file_license(value):
+                        result["has_pitfall"] = True
+                        result["is_local_file"] = True
+                        result["license_value"] = value
+                        result["source"] = pyproject_url
+                        result["metadata_source_file"] = "pyproject.toml"
+                        result["metadata_source_files"].append("pyproject.toml")
 
     return result

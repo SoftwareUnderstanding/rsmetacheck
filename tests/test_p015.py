@@ -351,7 +351,7 @@ class TestDetectCi404Pitfall:
 
     @pytest.mark.parametrize("status_code", [401, 403, 500, 502, 503])
     def test_various_error_status_codes(self, status_code):
-        """Test that various error status codes trigger pitfall"""
+        """Test that transient/server errors are NOT flagged (inconclusive)"""
         somef_data = {
             "continuous_integration": [{
                 "source": "repository/codemeta.json",
@@ -364,5 +364,6 @@ class TestDetectCi404Pitfall:
                    return_value={"is_accessible": False, "status_code": status_code, "error": None}):
             result = detect_ci_404_pitfall(somef_data, "test.json")
 
-            assert result["has_pitfall"] is True
-            assert result["status_code"] == status_code
+            assert result["has_pitfall"] is False
+            assert result["status_code"] is None
+            assert result["ci_url"] is None
