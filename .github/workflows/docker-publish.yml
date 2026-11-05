@@ -1,0 +1,15 @@
+name: Docker Image Publish
+
+on:
+  workflow_dispatch:
+#   release:
+#     types: [published]
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Test workflow
+              run: echo "Workflow is working"
