@@ -3,7 +3,9 @@ from rsmetacheck.scripts.pitfalls.p019 import (
     get_author_identifier,
     extract_authors_from_somef,
     find_author_count_inconsistencies,
-    detect_inconsistent_author_count
+    detect_inconsistent_author_count,
+    _declared_organization,
+    _codemeta_persons,
 )
 
 
@@ -593,3 +595,199 @@ class TestDetectInconsistentAuthorCount:
         assert inc["fewer_authors"] == ["Alice"]
         assert inc["more_authors"] == ["Alice", "Bob", "Charlie"]
         assert inc["difference"] == 2
+
+
+# Real-shaped payload from rsmetacheck-bot under SoMEF 0.11.5 / rsmetacheck
+# 0.3.7: codemeta.json's author list holds an organisation plus a person, and
+# SoMEF flattens both to type="Agent"; pyproject.toml holds only the person.
+# This is what P019 actually receives: detect_pitfalls_main applies
+# normalize_somef_data first, which explodes multi-source entries per file.
+SOMEF_ORG_AND_PERSON = {
+    "author": [
+        {
+            "source": "https://raw.githubusercontent.com/SoftwareUnderstanding/rsmetacheck-bot/main/codemeta.json",
+            "result": {
+                "value": "Software Understanding",
+                "type": "Agent",
+                "identifier": "https://github.com/SoftwareUnderstanding",
+            },
+        },
+        {
+            "source": "https://raw.githubusercontent.com/SoftwareUnderstanding/rsmetacheck-bot/main/codemeta.json",
+            "result": {
+                "value": "Tom Francois",
+                "type": "Agent",
+                "email": "tom.francois@lapp.in2p3.fr",
+                "affiliation": "Univ. Savoie Mont-Blanc, CNRS, LAPP",
+                "identifier": "https://orcid.org/0000-0001-5226-3089",
+                "name": "Tom Francois",
+            },
+        },
+        {
+            "source": "https://raw.githubusercontent.com/SoftwareUnderstanding/rsmetacheck-bot/main/pyproject.toml",
+            "result": {
+                "value": "Tom Francois",
+                "type": "Agent",
+                "email": "tom.francois@lapp.in2p3.fr",
+                "affiliation": "Univ. Savoie Mont-Blanc, CNRS, LAPP",
+                "identifier": "https://orcid.org/0000-0001-5226-3089",
+                "name": "Tom Francois",
+            },
+        },
+    ]
+}
+
+CODEMETA_WITH_ORGANIZATION = """{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "author": [
+    {"@type": "Organization", "name": "Software Understanding",
+     "@id": "https://github.com/SoftwareUnderstanding"},
+    {"@type": "Person", "givenName": "Tom", "familyName": "Francois",
+     "@id": "https://orcid.org/0000-0001-5226-3089"}
+  ]
+}"""
+
+
+class TestDeclaredOrganization:
+    """Test suite for _declared_organization function"""
+
+    @pytest.mark.parametrize("result,expected", [
+        ({"type": "Organization", "name": "Org"}, True),
+        ({"@type": "Organization", "name": "Org"}, True),
+        ({"@type": ["Agent", "Organization"], "name": "Org"}, True),
+        ({"agent_type": "Organization", "name": "Org"}, True),
+        ({"type": "agent, organization", "name": "Org"}, True),
+        # Person-ish and ambiguous entries must never be dropped
+        ({"type": "Agent", "name": "Tom Francois"}, False),
+        ({"type": "Person", "name": "Tom Francois"}, False),
+        ({"value": "Tom", "identifier": "https://github.com/tom"}, False),
+        ({"name": "Tom"}, False),
+        ({}, False),
+        ("Tom Francois", False),
+        (None, False),
+    ])
+    def test_declared_organization_scenarios(self, result, expected):
+        assert _declared_organization(result) is expected
+
+
+class TestCodemetaPersons:
+    """Test suite for _codemeta_persons function"""
+
+    def test_reads_people_and_skips_organizations(self, monkeypatch):
+        monkeypatch.setattr(
+            "rsmetacheck.scripts.pitfalls.p019.fetch_text",
+            lambda url, **kwargs: CODEMETA_WITH_ORGANIZATION,
+        )
+        count, names = _codemeta_persons(SOMEF_ORG_AND_PERSON)
+        assert count == 1
+        assert names == ["Tom Francois"]
+
+    def test_missing_source_url_returns_none(self):
+        somef_data = {"author": [{"source": "repository/codemeta.json",
+                                  "result": {"name": "Tom"}}]}
+        assert _codemeta_persons(somef_data) is None
+
+    def test_unreadable_file_returns_none(self, monkeypatch):
+        monkeypatch.setattr(
+            "rsmetacheck.scripts.pitfalls.p019.fetch_text",
+            lambda url, **kwargs: None,
+        )
+        assert _codemeta_persons(SOMEF_ORG_AND_PERSON) is None
+
+    def test_invalid_json_returns_none(self, monkeypatch):
+        monkeypatch.setattr(
+            "rsmetacheck.scripts.pitfalls.p019.fetch_text",
+            lambda url, **kwargs: "not json",
+        )
+        assert _codemeta_persons(SOMEF_ORG_AND_PERSON) is None
+
+    def test_nested_codemeta_is_ignored(self, monkeypatch):
+        """A vendored codemeta must not be used as the author source."""
+        def _fail(*args, **kwargs):
+            raise AssertionError("fetch_text must not be called")
+
+        monkeypatch.setattr("rsmetacheck.scripts.pitfalls.p019.fetch_text", _fail)
+        somef_data = {"author": [{
+            "source": "https://raw.githubusercontent.com/o/r/main/third_party/x/codemeta.json",
+            "result": {"name": "Tom"},
+        }]}
+        assert _codemeta_persons(somef_data) is None
+
+
+class TestOrganizationHandling:
+    """P019 must not count organisations as authors"""
+
+    def test_org_in_codemeta_is_not_reported(self):
+        """The rsmetacheck-bot case: 2 agents vs 1 person is not a finding."""
+        result = detect_inconsistent_author_count(SOMEF_ORG_AND_PERSON, "test_repo.json")
+        assert result["has_warning"] is False
+        assert result["min_author_count"] == result["max_author_count"] == 1
+        sources = {s["source_file"]: s["author_count"] for s in result["author_sources"]}
+        assert sources == {"codemeta.json": 1, "pyproject.toml": 1}
+
+    def test_declared_organization_entry_is_dropped(self):
+        """An entry SoMEF already labels as an organisation is not counted."""
+        somef_data = {
+            "author": [
+                {"source": "repository/codemeta.json",
+                 "result": {"name": "Org", "type": "Organization"}},
+                {"source": "repository/codemeta.json",
+                 "result": {"name": "Tom", "type": "Agent"}},
+                {"source": "repository/pyproject.toml",
+                 "result": {"name": "Tom", "type": "Agent"}},
+            ]
+        }
+        result = detect_inconsistent_author_count(somef_data, "test_repo.json")
+        assert result["has_warning"] is False
+        sources = {s["source_file"]: s["author_count"] for s in result["author_sources"]}
+        assert sources == {"codemeta.json": 1, "pyproject.toml": 1}
+
+    def test_source_left_with_no_people_is_omitted(self):
+        """A file whose only authors are organisations must not become a 0."""
+        somef_data = {
+            "author": [
+                {"source": "repository/codemeta.json",
+                 "result": {"name": "Org", "type": "Organization"}},
+                {"source": "repository/pyproject.toml",
+                 "result": {"name": "Tom"}},
+            ]
+        }
+        result = detect_inconsistent_author_count(somef_data, "test_repo.json")
+        assert result["has_warning"] is False
+        assert [s["source_file"] for s in result["author_sources"]] == ["pyproject.toml"]
+
+    def test_genuine_mismatch_still_detected(self, monkeypatch):
+        """Filtering organisations must not mute a real people-count mismatch."""
+        monkeypatch.setattr(
+            "rsmetacheck.scripts.pitfalls.p019._codemeta_persons",
+            lambda somef_data: (3, ["Tom Francois", "Alice", "Bob"]),
+        )
+        result = detect_inconsistent_author_count(SOMEF_ORG_AND_PERSON, "test_repo.json")
+        assert result["has_warning"] is True
+        inconsistency = result["inconsistencies"][0]
+        assert inconsistency["fewer_count"] == 1
+        assert inconsistency["more_count"] == 3
+        assert inconsistency["difference"] == 2
+
+    def test_falls_back_to_somef_view_when_file_unreadable(self, monkeypatch):
+        """An unreadable codemeta.json keeps the previous (SoMEF) behaviour."""
+        monkeypatch.setattr(
+            "rsmetacheck.scripts.pitfalls.p019._codemeta_persons",
+            lambda somef_data: None,
+        )
+        result = detect_inconsistent_author_count(SOMEF_ORG_AND_PERSON, "test_repo.json")
+        assert result["has_warning"] is True
+        assert result["max_author_count"] == 2
+
+    def test_people_only_lists_are_untouched(self):
+        """Ordinary repos keep behaving exactly as before."""
+        somef_data = {
+            "author": [
+                {"source": "repository/codemeta.json", "result": [{"name": "Tom"}]},
+                {"source": "repository/pyproject.toml", "result": {"name": "Tom"}},
+            ]
+        }
+        result = detect_inconsistent_author_count(somef_data, "test_repo.json")
+        assert result["has_warning"] is False
+        assert result["total_sources"] == 2
