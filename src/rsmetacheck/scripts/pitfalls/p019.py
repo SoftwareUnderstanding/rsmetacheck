@@ -1,6 +1,6 @@
 import json
 import re
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from rsmetacheck.utils.pitfall_utils import extract_metadata_source_filename
 from rsmetacheck.utils.fetch_utils import find_source_url, fetch_text
@@ -18,7 +18,73 @@ METADATA_AUTHOR_SOURCES = {
 EXCLUDED_AUTHOR_SOURCES = {"zenodo.json", ".zenodo.json", "zenodo_deposit.json"}
 
 
-def extract_authors_from_somef(somef_data: Dict) -> List[Dict[str, any]]:
+def _declared_organization(result: Any) -> bool:
+    """True when the entry itself declares it is an organisation.
+
+    SoMEF normally flattens codemeta's ``@type`` to ``"Agent"``, so this only
+    catches entries that still carry the information (``type`` / ``@type`` /
+    ``agent_type``). The absence of every person field is deliberately *not*
+    treated as proof of an organisation: that would silently drop real people
+    and hide genuine author-count mismatches.
+    """
+    if not isinstance(result, dict):
+        return False
+    for key in ("type", "@type", "agent_type"):
+        value = result.get(key)
+        values = value if isinstance(value, (list, tuple)) else [value]
+        for item in values:
+            if isinstance(item, str) and "organization" in item.lower():
+                return True
+    return False
+
+
+def _codemeta_persons(somef_data: Dict) -> Optional[Tuple[int, List[str]]]:
+    """Read ``author``/``creator`` from the repository's root codemeta.json.
+
+    SoMEF emits every codemeta author as ``type: "Agent"``, so an organisation
+    listed in ``author`` is indistinguishable from a person in the SoMEF
+    payload. The file itself still carries ``@type``: read it and keep only the
+    people. Returns ``None`` when the file cannot be read, so the caller falls
+    back to the SoMEF view instead of guessing.
+    """
+    url = find_source_url(somef_data, "codemeta.json", codemeta_root_only=True)
+    if not url:
+        return None
+    text = fetch_text(url)
+    if not text:
+        return None
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+
+    raw = data.get("author") or data.get("creator")
+    if raw is None:
+        return None
+    entries = raw if isinstance(raw, list) else [raw]
+
+    people: List[str] = []
+    for entry in entries:
+        if isinstance(entry, dict):
+            if _declared_organization(entry):
+                continue
+            name = " ".join(
+                part for part in (entry.get("givenName"), entry.get("familyName"))
+                if isinstance(part, str) and part.strip()
+            ).strip()
+            name = name or entry.get("name") or entry.get("value") or entry.get("email")
+            if isinstance(name, str) and name.strip():
+                people.append(name.strip())
+        elif isinstance(entry, str) and entry.strip():
+            people.append(entry.strip())
+
+    return len(people), people
+
+
+def extract_authors_from_somef(somef_data: Dict,
+                               exclude_organizations: bool = False) -> List[Dict[str, any]]:
     """
     Extract author counts grouped by metadata source file.
 
@@ -26,6 +92,10 @@ def extract_authors_from_somef(somef_data: Dict) -> List[Dict[str, any]]:
     author count for a given source file is the number of entries pointing at
     that file. Aggregating by source file (rather than counting per entry)
     makes "codemeta.json has 37 authors vs setup.py has 1" detectable.
+
+    With ``exclude_organizations`` enabled, entries that declare themselves an
+    organisation are dropped before counting, and a source left with no authors
+    is omitted entirely (counting it as 0 would invent a "0 vs N" mismatch).
     """
     if "author" not in somef_data:
         return []
@@ -47,8 +117,15 @@ def extract_authors_from_somef(somef_data: Dict) -> List[Dict[str, any]]:
         if isinstance(result, list):
             if not result:
                 continue
+            if exclude_organizations:
+                result = [author for author in result
+                          if not _declared_organization(author)]
+                if not result:
+                    continue
             identifiers = [get_author_identifier(author) for author in result]
         elif isinstance(result, (dict, str)):
+            if exclude_organizations and _declared_organization(result):
+                continue
             identifiers = [get_author_identifier(result)]
         else:
             continue
@@ -201,10 +278,21 @@ def detect_inconsistent_author_count(somef_data: Dict, file_name: str) -> Dict:
     }
 
     author_sources = [
-        src for src in extract_authors_from_somef(somef_data)
+        src for src in extract_authors_from_somef(somef_data, exclude_organizations=True)
         if src["source_file"].lower() in METADATA_AUTHOR_SOURCES
         and src["source_file"].lower() not in EXCLUDED_AUTHOR_SOURCES
     ]
+
+    # SoMEF labels every codemeta author "Agent", so an organisation in
+    # codemeta.json's author list is counted as a person. Re-read the file and
+    # keep only people; fall back to the SoMEF view when it cannot be read.
+    for source_info in author_sources:
+        if source_info["source_file"].lower() != "codemeta.json":
+            continue
+        persons = _codemeta_persons(somef_data)
+        if persons is not None:
+            source_info["author_count"], source_info["authors"] = persons
+    author_sources = [src for src in author_sources if src["author_count"] > 0]
 
     # SoMEF 0.11.2 often does not extract setup.py/package.json authors; read
     # those files directly when they are present in the repository.
