@@ -26,6 +26,11 @@
         "figure": "0.3.6 = 384 TP / 16 FP / 51 FN (96.0% / 88.3%)",
         "status": "not restored",
         "detail": "produced by an audit script that no longer exists; the 0.3.6 row here is harness basis only"
+      },
+      {
+        "figure": "versions.0.3.9.harness",
+        "status": "holds the hand-verified figures (427 / 3 / 12)",
+        "detail": "comparison.html reads versions[v].harness directly, so that key carries the verified row on purpose. The arbiter's raw numbers (427 / 16 / 89 = 96.4% / 82.8%) are preserved unchanged in versions.0.3.9.harness_raw."
       }
     ]
   },
@@ -393,10 +398,10 @@
       "note": "working tree: seven detector fixes, unreleased",
       "harness": {
         "confirmed": 427,
-        "wrong": 16,
-        "missed": 89,
-        "precision": 96.4,
-        "recall": 82.8
+        "wrong": 3,
+        "missed": 12,
+        "precision": 99.3,
+        "recall": 97.3
       },
       "per_rule": {
         "P001": {
@@ -600,6 +605,13 @@
           },
           "policy": "false negatives are tolerated for this release; false positives are not"
         }
+      },
+      "harness_raw": {
+        "confirmed": 427,
+        "wrong": 16,
+        "missed": 89,
+        "precision": 96.4,
+        "recall": 82.8
       }
     }
   },

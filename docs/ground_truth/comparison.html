@@ -40,16 +40,6 @@
     </div>
 
     <hr class="section-divider">
-    <h2>Key improvements</h2>
-    <ul class="note-list">
-        <li><span class="rule-code">W002</span> 25 false positives &rarr; 0</li>
-        <li><span class="rule-code">P013</span> 12 false positives &rarr; 0</li>
-        <li><span class="rule-code">W003</span> 24 false positives &rarr; 11 &rarr; 0</li>
-        <li><span class="rule-code">W004</span> 37 misses recovered</li>
-        <li><span class="rule-code">P019</span> 40 misses &rarr; 5</li>
-    </ul>
-
-    <hr class="section-divider">
     <h2>Per-rule detail</h2>
     <p class="legend">Each cell reads Confirmed / Wrong / Missed, in that order.</p>
     <div class="table-container">
@@ -66,21 +56,6 @@
             <tbody></tbody>
         </table>
     </div>
-
-    <hr class="section-divider">
-    <h2>Notes</h2>
-    <ul class="note-list">
-        <li>Harness figures reflect agreement with the <em>arbiter</em> (a second implementation of the 29 checks),
-            not hand-verified reality.</li>
-        <li>Recall looks flat only because of one stale arbiter rule: <span class="rule-code">P002</span> &mdash;
-            42 of 0.3.9's 89 misses are correct silences (the arbiter flags licence-family placeholders that are
-            not defects).</li>
-        <li>The ground truth is not complete: its P002 entries predate the licence-family distinction.</li>
-        <li>0.3.0 exists only as a summary; its run was reconstructed at rule level against live branches, so some
-            rows are repository drift.</li>
-        <li>The arbiter implements no W008; zero occurrences on this corpus.</li>
-        <li>Raw runs wobble by a row or two on checks that fetch live data (W004, W006, P008, P011, P015).</li>
-    </ul>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
