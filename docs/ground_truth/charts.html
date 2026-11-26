@@ -4,68 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>rsmetacheck &mdash; 0.3.0 vs 0.3.5 Charts</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #ffffff;
-            color: #333333;
-            margin: 0;
-            padding: 20px;
-        }
-        .nav {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .nav a {
-            color: #3498db;
-            text-decoration: none;
-            font-size: 0.95em;
-            padding: 6px 14px;
-            border: 1px solid #3498db;
-            border-radius: 4px;
-            margin: 0 6px;
-        }
-        .nav a:hover {
-            background-color: #3498db;
-            color: #fff;
-        }
-        h1, h2 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        h1 { margin-bottom: 10px; }
-        h2 { margin-bottom: 20px; }
-        .charts-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            max-width: 95%;
-            margin: 0 auto 40px auto;
-        }
-        .chart-box {
-            flex: 1 1 500px;
-            max-width: 700px;
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-        }
-        .chart-box h3 {
-            text-align: center;
-            color: #2c3e50;
-            margin: 0 0 12px 0;
-            font-size: 1.05em;
-        }
-        .section-divider {
-            border: none;
-            border-top: 3px solid #e0e0e0;
-            max-width: 95%;
-            margin: 40px auto 20px auto;
-        }
-        canvas { width: 100% !important; height: auto !important; }
-    </style>
+        <link rel="stylesheet" href="../stylesheets/lab-report.css">
+    <script src="../theme.js" defer></script>
 </head>
 <body>
 
@@ -73,12 +13,12 @@
         <a href="../index.html">&larr; Home</a>
         <a href="../catalog.html">Catalog</a>
         <a href="index.html">Ground Truth Report</a>
-        <a href="comparison.html">Version Comparison</a>
+        <a href="comparison.html">Performance</a>
     </div>
 
     <h1>0.3.0 vs 0.3.5 &mdash; Charts</h1>
 
-    <p style="text-align: center; color: #555; font-size: 0.95em; line-height: 1.5; max-width: 800px; margin: 0 auto 20px auto;">
+    <p class="page-intro">
         Pitfall and warning detection distributions across 150 repositories evaluated by
         rsmetacheck versions 0.3.0 and 0.3.5.
     </p>
@@ -128,18 +68,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            const cs = getComputedStyle(document.documentElement);
+            Chart.defaults.color = cs.getPropertyValue('--ink').trim() || '#1a1f28';
+            Chart.defaults.borderColor = cs.getPropertyValue('--line').trim() || '#dcd5c4';
             Promise.all([
                 fetch('summary_0_3_0.json').then(r => r.json()),
                 fetch('summary_0_3_5.json').then(r => r.json())
             ])
             .then(([data030, data033]) => {
                 buildDistribution(data030, '030', {
-                    p: 'rgba(192, 57, 43, 0.7)', pBorder: '#c0392b',
-                    w: 'rgba(230, 126, 34, 0.7)', wBorder: '#e67e22'
+                    p: 'rgba(239, 40, 24, 0.7)', pBorder: '#ef2818',
+                    w: 'rgba(57, 116, 180, 0.7)', wBorder: '#e67e22'
                 });
                 buildDistribution(data033, '033', {
-                    p: 'rgba(142, 68, 173, 0.7)', pBorder: '#8e44ad',
-                    w: 'rgba(41, 128, 185, 0.7)', wBorder: '#2980b9'
+                    p: 'rgba(239, 40, 24, 0.7)', pBorder: '#ef2818',
+                    w: 'rgba(57, 116, 180, 0.7)', wBorder: '#2980b9'
                 });
                 buildGrouped(data030, data033);
             })
@@ -249,15 +192,15 @@
                         {
                             label: '0.3.0',
                             data: sortedPitfalls.map(c => p030[c] || 0),
-                            backgroundColor: 'rgba(192, 57, 43, 0.75)',
-                            borderColor: '#c0392b',
+                            backgroundColor: 'rgba(91, 99, 112, 0.75)',
+                            borderColor: '#5b6370',
                             borderWidth: 1
                         },
                         {
                             label: '0.3.5',
                             data: sortedPitfalls.map(c => p033[c] || 0),
-                            backgroundColor: 'rgba(142, 68, 173, 0.75)',
-                            borderColor: '#8e44ad',
+                            backgroundColor: 'rgba(239, 40, 24, 0.75)',
+                            borderColor: '#ef2818',
                             borderWidth: 1
                         }
                     ]
@@ -280,15 +223,15 @@
                         {
                             label: '0.3.0',
                             data: sortedWarnings.map(c => w030[c] || 0),
-                            backgroundColor: 'rgba(230, 126, 34, 0.75)',
-                            borderColor: '#e67e22',
+                            backgroundColor: 'rgba(91, 99, 112, 0.75)',
+                            borderColor: '#5b6370',
                             borderWidth: 1
                         },
                         {
                             label: '0.3.5',
                             data: sortedWarnings.map(c => w033[c] || 0),
-                            backgroundColor: 'rgba(41, 128, 185, 0.75)',
-                            borderColor: '#2980b9',
+                            backgroundColor: 'rgba(57, 116, 180, 0.75)',
+                            borderColor: '#3974b4',
                             borderWidth: 1
                         }
                     ]

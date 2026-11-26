@@ -130,10 +130,17 @@ def extract_authors_from_somef(somef_data: Dict,
         else:
             continue
 
+        # SoMEF can emit the same author entry more than once, and
+        # normalize_somef_data explodes a source list into one entry per URL,
+        # which multiplies the same person across the same file. Count each
+        # author once per source file.
+        identifiers = list(dict.fromkeys(i for i in identifiers if i))
         source_file = extract_metadata_source_filename(source)
         if source_file in grouped:
-            grouped[source_file]["authors"].extend(identifiers)
-            grouped[source_file]["author_count"] += len(identifiers)
+            existing = grouped[source_file]["authors"]
+            new = [i for i in identifiers if i not in existing]
+            existing.extend(new)
+            grouped[source_file]["author_count"] += len(new)
         else:
             grouped[source_file] = {
                 "source": source,

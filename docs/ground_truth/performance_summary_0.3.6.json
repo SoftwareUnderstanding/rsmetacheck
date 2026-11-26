@@ -1,0 +1,876 @@
+{
+  "generated_by": "tools/annotate_evaluation.py",
+  "policy": {
+    "correctly_processed_rules": [
+      "P009",
+      "W002",
+      "P001",
+      "P017",
+      "W004",
+      "W001"
+    ],
+    "semantics": "confirmed findings of these rules stay true positives; their false positives are removed from the precision denominator and their missed findings from the recall denominator",
+    "known_limitations": {
+      "W003": "Detector patterns match GPL boilerplate / rely on extracted license values; SoMEF 0.11.2 does not expose the README license section. Accepted as a known limitation (Option C)."
+    },
+    "metric_definition": {
+      "precision": "confirmed / (confirmed + wrong)",
+      "recall": "confirmed / (confirmed + missed)"
+    }
+  },
+  "reports": {
+    "docs/ground_truth/verification_report_0.3.6.json": {
+      "repositories": 150,
+      "annotated_findings": 318,
+      "metrics": {
+        "baseline": {
+          "confirmed": 339,
+          "wrong": 39,
+          "missed": 144,
+          "precision_pct": 89.7,
+          "recall_pct": 70.2
+        },
+        "adjusted_keep_true_positives": {
+          "confirmed": 339,
+          "wrong": 22,
+          "missed": 73,
+          "precision_pct": 93.9,
+          "recall_pct": 82.3
+        },
+        "adjusted_drop_rules_entirely": {
+          "confirmed": 109,
+          "wrong": 22,
+          "missed": 73,
+          "precision_pct": 83.2,
+          "recall_pct": 59.9
+        }
+      },
+      "per_rule": {
+        "P001": {
+          "confirmed": 38,
+          "wrong": 7,
+          "missed": 11,
+          "assessment": "correctly_processed"
+        },
+        "P002": {
+          "confirmed": 7,
+          "wrong": 0,
+          "missed": 36,
+          "assessment": "evaluated"
+        },
+        "P005": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 4,
+          "assessment": "evaluated"
+        },
+        "P006": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 5,
+          "assessment": "evaluated"
+        },
+        "P008": {
+          "confirmed": 0,
+          "wrong": 1,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P009": {
+          "confirmed": 9,
+          "wrong": 0,
+          "missed": 5,
+          "assessment": "correctly_processed"
+        },
+        "P010": {
+          "confirmed": 15,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P011": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 3,
+          "assessment": "evaluated"
+        },
+        "P012": {
+          "confirmed": 0,
+          "wrong": 1,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P013": {
+          "confirmed": 4,
+          "wrong": 4,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P014": {
+          "confirmed": 10,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P015": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P016": {
+          "confirmed": 28,
+          "wrong": 2,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P017": {
+          "confirmed": 24,
+          "wrong": 4,
+          "missed": 8,
+          "assessment": "correctly_processed"
+        },
+        "P018": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P019": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 6,
+          "assessment": "evaluated"
+        },
+        "W001": {
+          "confirmed": 98,
+          "wrong": 2,
+          "missed": 7,
+          "assessment": "correctly_processed"
+        },
+        "W002": {
+          "confirmed": 19,
+          "wrong": 3,
+          "missed": 3,
+          "assessment": "correctly_processed"
+        },
+        "W003": {
+          "confirmed": 0,
+          "wrong": 12,
+          "missed": 2,
+          "assessment": "known_limitation"
+        },
+        "W004": {
+          "confirmed": 42,
+          "wrong": 1,
+          "missed": 37,
+          "assessment": "correctly_processed"
+        },
+        "W005": {
+          "confirmed": 2,
+          "wrong": 2,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W006": {
+          "confirmed": 16,
+          "wrong": 0,
+          "missed": 13,
+          "assessment": "evaluated"
+        },
+        "W007": {
+          "confirmed": 11,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W009": {
+          "confirmed": 11,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        }
+      }
+    },
+    "docs/ground_truth/verification_report_SHA_0.3.6.json": {
+      "repositories": 150,
+      "annotated_findings": 311,
+      "metrics": {
+        "baseline": {
+          "confirmed": 339,
+          "wrong": 120,
+          "missed": 143,
+          "precision_pct": 73.9,
+          "recall_pct": 70.3
+        },
+        "adjusted_keep_true_positives": {
+          "confirmed": 339,
+          "wrong": 109,
+          "missed": 70,
+          "precision_pct": 75.7,
+          "recall_pct": 82.9
+        },
+        "adjusted_drop_rules_entirely": {
+          "confirmed": 112,
+          "wrong": 109,
+          "missed": 70,
+          "precision_pct": 50.7,
+          "recall_pct": 61.5
+        }
+      },
+      "per_rule": {
+        "P001": {
+          "confirmed": 36,
+          "wrong": 4,
+          "missed": 12,
+          "assessment": "correctly_processed"
+        },
+        "P002": {
+          "confirmed": 7,
+          "wrong": 0,
+          "missed": 36,
+          "assessment": "evaluated"
+        },
+        "P005": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 4,
+          "assessment": "evaluated"
+        },
+        "P006": {
+          "confirmed": 3,
+          "wrong": 0,
+          "missed": 4,
+          "assessment": "evaluated"
+        },
+        "P008": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P009": {
+          "confirmed": 9,
+          "wrong": 0,
+          "missed": 5,
+          "assessment": "correctly_processed"
+        },
+        "P010": {
+          "confirmed": 15,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P011": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 3,
+          "assessment": "evaluated"
+        },
+        "P012": {
+          "confirmed": 0,
+          "wrong": 1,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P013": {
+          "confirmed": 4,
+          "wrong": 4,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P014": {
+          "confirmed": 10,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P015": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P016": {
+          "confirmed": 28,
+          "wrong": 90,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P017": {
+          "confirmed": 24,
+          "wrong": 2,
+          "missed": 8,
+          "assessment": "correctly_processed"
+        },
+        "P018": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P019": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 6,
+          "assessment": "evaluated"
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 2,
+          "missed": 6,
+          "assessment": "correctly_processed"
+        },
+        "W002": {
+          "confirmed": 18,
+          "wrong": 2,
+          "missed": 4,
+          "assessment": "correctly_processed"
+        },
+        "W003": {
+          "confirmed": 0,
+          "wrong": 12,
+          "missed": 2,
+          "assessment": "known_limitation"
+        },
+        "W004": {
+          "confirmed": 41,
+          "wrong": 1,
+          "missed": 38,
+          "assessment": "correctly_processed"
+        },
+        "W005": {
+          "confirmed": 2,
+          "wrong": 2,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W006": {
+          "confirmed": 16,
+          "wrong": 0,
+          "missed": 13,
+          "assessment": "evaluated"
+        },
+        "W007": {
+          "confirmed": 11,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W009": {
+          "confirmed": 12,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        }
+      }
+    },
+    "docs/ground_truth/verification_report_SHA_0.3.6_clean.json": {
+      "repositories": 150,
+      "annotated_findings": 311,
+      "metrics": {
+        "baseline": {
+          "confirmed": 339,
+          "wrong": 34,
+          "missed": 143,
+          "precision_pct": 90.9,
+          "recall_pct": 70.3
+        },
+        "adjusted_keep_true_positives": {
+          "confirmed": 339,
+          "wrong": 23,
+          "missed": 70,
+          "precision_pct": 93.6,
+          "recall_pct": 82.9
+        },
+        "adjusted_drop_rules_entirely": {
+          "confirmed": 112,
+          "wrong": 23,
+          "missed": 70,
+          "precision_pct": 83.0,
+          "recall_pct": 61.5
+        }
+      },
+      "per_rule": {
+        "P001": {
+          "confirmed": 36,
+          "wrong": 4,
+          "missed": 12,
+          "assessment": "correctly_processed"
+        },
+        "P002": {
+          "confirmed": 7,
+          "wrong": 0,
+          "missed": 36,
+          "assessment": "evaluated"
+        },
+        "P005": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 4,
+          "assessment": "evaluated"
+        },
+        "P006": {
+          "confirmed": 3,
+          "wrong": 0,
+          "missed": 4,
+          "assessment": "evaluated"
+        },
+        "P008": {
+          "confirmed": 1,
+          "wrong": 2,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P009": {
+          "confirmed": 9,
+          "wrong": 0,
+          "missed": 5,
+          "assessment": "correctly_processed"
+        },
+        "P010": {
+          "confirmed": 15,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P011": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 3,
+          "assessment": "evaluated"
+        },
+        "P012": {
+          "confirmed": 0,
+          "wrong": 1,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P013": {
+          "confirmed": 4,
+          "wrong": 4,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P014": {
+          "confirmed": 10,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P015": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P016": {
+          "confirmed": 28,
+          "wrong": 2,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P017": {
+          "confirmed": 24,
+          "wrong": 2,
+          "missed": 8,
+          "assessment": "correctly_processed"
+        },
+        "P018": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P019": {
+          "confirmed": 0,
+          "wrong": 0,
+          "missed": 6,
+          "assessment": "evaluated"
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 2,
+          "missed": 6,
+          "assessment": "correctly_processed"
+        },
+        "W002": {
+          "confirmed": 18,
+          "wrong": 2,
+          "missed": 4,
+          "assessment": "correctly_processed"
+        },
+        "W003": {
+          "confirmed": 0,
+          "wrong": 12,
+          "missed": 2,
+          "assessment": "known_limitation"
+        },
+        "W004": {
+          "confirmed": 41,
+          "wrong": 1,
+          "missed": 38,
+          "assessment": "correctly_processed"
+        },
+        "W005": {
+          "confirmed": 2,
+          "wrong": 2,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W006": {
+          "confirmed": 16,
+          "wrong": 0,
+          "missed": 13,
+          "assessment": "evaluated"
+        },
+        "W007": {
+          "confirmed": 11,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W009": {
+          "confirmed": 12,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        }
+      }
+    },
+    "docs/ground_truth/verification_report_SHA_0.3.6_fixed.json": {
+      "repositories": 150,
+      "annotated_findings": 311,
+      "metrics": {
+        "baseline": {
+          "confirmed": 409,
+          "wrong": 52,
+          "missed": 98,
+          "precision_pct": 88.7,
+          "recall_pct": 80.7
+        },
+        "adjusted_keep_true_positives": {
+          "confirmed": 409,
+          "wrong": 40,
+          "missed": 25,
+          "precision_pct": 91.1,
+          "recall_pct": 94.2
+        },
+        "adjusted_drop_rules_entirely": {
+          "confirmed": 183,
+          "wrong": 40,
+          "missed": 25,
+          "precision_pct": 82.1,
+          "recall_pct": 88.0
+        }
+      },
+      "per_rule": {
+        "P001": {
+          "confirmed": 37,
+          "wrong": 3,
+          "missed": 12,
+          "assessment": "correctly_processed"
+        },
+        "P002": {
+          "confirmed": 35,
+          "wrong": 0,
+          "missed": 8,
+          "assessment": "evaluated"
+        },
+        "P005": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 2,
+          "assessment": "evaluated"
+        },
+        "P006": {
+          "confirmed": 7,
+          "wrong": 1,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P008": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P009": {
+          "confirmed": 7,
+          "wrong": 2,
+          "missed": 5,
+          "assessment": "correctly_processed"
+        },
+        "P010": {
+          "confirmed": 16,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P011": {
+          "confirmed": 3,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P013": {
+          "confirmed": 4,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P014": {
+          "confirmed": 10,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P015": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P016": {
+          "confirmed": 27,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P017": {
+          "confirmed": 24,
+          "wrong": 2,
+          "missed": 10,
+          "assessment": "correctly_processed"
+        },
+        "P018": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P019": {
+          "confirmed": 21,
+          "wrong": 21,
+          "missed": 11,
+          "assessment": "evaluated"
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 2,
+          "missed": 4,
+          "assessment": "correctly_processed"
+        },
+        "W002": {
+          "confirmed": 18,
+          "wrong": 2,
+          "missed": 4,
+          "assessment": "correctly_processed"
+        },
+        "W003": {
+          "confirmed": 0,
+          "wrong": 12,
+          "missed": 2,
+          "assessment": "known_limitation"
+        },
+        "W004": {
+          "confirmed": 41,
+          "wrong": 1,
+          "missed": 38,
+          "assessment": "correctly_processed"
+        },
+        "W005": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W006": {
+          "confirmed": 29,
+          "wrong": 6,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W007": {
+          "confirmed": 11,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W009": {
+          "confirmed": 12,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        }
+      }
+    },
+    "docs/ground_truth/verification_report_SHA_0.3.6_fixed2.json": {
+      "repositories": 150,
+      "annotated_findings": 311,
+      "metrics": {
+        "baseline": {
+          "confirmed": 426,
+          "wrong": 28,
+          "missed": 89,
+          "precision_pct": 93.8,
+          "recall_pct": 82.7
+        },
+        "adjusted_keep_true_positives": {
+          "confirmed": 426,
+          "wrong": 16,
+          "missed": 16,
+          "precision_pct": 96.4,
+          "recall_pct": 96.4
+        },
+        "adjusted_drop_rules_entirely": {
+          "confirmed": 200,
+          "wrong": 16,
+          "missed": 16,
+          "precision_pct": 92.6,
+          "recall_pct": 92.6
+        }
+      },
+      "per_rule": {
+        "P001": {
+          "confirmed": 37,
+          "wrong": 3,
+          "missed": 12,
+          "assessment": "correctly_processed"
+        },
+        "P002": {
+          "confirmed": 43,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P005": {
+          "confirmed": 4,
+          "wrong": 1,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P006": {
+          "confirmed": 7,
+          "wrong": 1,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P008": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P009": {
+          "confirmed": 7,
+          "wrong": 2,
+          "missed": 5,
+          "assessment": "correctly_processed"
+        },
+        "P010": {
+          "confirmed": 16,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P011": {
+          "confirmed": 3,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P013": {
+          "confirmed": 4,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P014": {
+          "confirmed": 10,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P015": {
+          "confirmed": 1,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P016": {
+          "confirmed": 27,
+          "wrong": 0,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "P017": {
+          "confirmed": 24,
+          "wrong": 2,
+          "missed": 10,
+          "assessment": "correctly_processed"
+        },
+        "P018": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "P019": {
+          "confirmed": 29,
+          "wrong": 0,
+          "missed": 11,
+          "assessment": "evaluated"
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 2,
+          "missed": 4,
+          "assessment": "correctly_processed"
+        },
+        "W002": {
+          "confirmed": 18,
+          "wrong": 2,
+          "missed": 4,
+          "assessment": "correctly_processed"
+        },
+        "W003": {
+          "confirmed": 0,
+          "wrong": 12,
+          "missed": 2,
+          "assessment": "known_limitation"
+        },
+        "W004": {
+          "confirmed": 41,
+          "wrong": 1,
+          "missed": 38,
+          "assessment": "correctly_processed"
+        },
+        "W005": {
+          "confirmed": 2,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W006": {
+          "confirmed": 28,
+          "wrong": 2,
+          "missed": 1,
+          "assessment": "evaluated"
+        },
+        "W007": {
+          "confirmed": 11,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        },
+        "W009": {
+          "confirmed": 12,
+          "wrong": 0,
+          "missed": 0,
+          "assessment": "evaluated"
+        }
+      }
+    }
+  }
+}

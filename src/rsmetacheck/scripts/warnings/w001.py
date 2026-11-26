@@ -43,6 +43,30 @@ def check_requirement_has_version(req_name: str) -> bool:
     return False
 
 
+def is_uri_requirement(value: str) -> bool:
+    """True when a "requirement" is really a link rather than a dependency.
+
+    requirements lists sometimes contain a pointer to the requirements file, a
+    VCS remote, an archived SWHID or a local path. Those are not dependencies and
+    cannot carry a version, so they must not count towards W001.
+    """
+    if not isinstance(value, str):
+        return False
+    v = value.strip()
+    if not v:
+        return False
+    if v.lower().startswith(('http://', 'https://', 'git+', 'git://', 'ssh://',
+                             'svn://', 'hg://', 'bzr://', 'ftp://', 'file:')):
+        return True
+    if re.match(r'^git@[^:\s]+:', v):
+        return True
+    if re.search(r'\bswh:1:', v, re.IGNORECASE):
+        return True
+    if v.startswith(('./', '../', '/')):
+        return True
+    return False
+
+
 def analyze_requirements_versions(requirements_data: Dict) -> Tuple[int, int, List[str]]:
     """
     Analyze requirements to count versioned vs unversioned dependencies.
@@ -66,14 +90,20 @@ def analyze_requirements_versions(requirements_data: Dict) -> Tuple[int, int, Li
             req_name = req.get("name", req.get("value", "unknown"))
             if isinstance(req_name, str) and bool(re.search(r'\b(npm|bash|cd|pip|install)\b', req_name.lower())):
                 continue
-            
+
+            # A link (requirements-file pointer, VCS remote, SWHID, path) is not
+            # a dependency — skip it instead of calling it unversioned.
+            if isinstance(req_name, str) and is_uri_requirement(req_name):
+                continue
+
             if isinstance(req_name, str) and ',' in req_name:
                 parts = [p.strip() for p in req_name.split(',')]
             else:
                 parts = [req_name]
-                
+
             for part in parts:
                 if not part: continue
+                if isinstance(part, str) and is_uri_requirement(part): continue
                 total_requirements += 1
                 has_version_field = "version" in req and bool(req["version"])
                 has_version_str = isinstance(part, str) and check_requirement_has_version(part)

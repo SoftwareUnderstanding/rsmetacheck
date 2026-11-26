@@ -2,7 +2,32 @@ from typing import Dict, List
 import re
 
 from rsmetacheck.utils.pitfall_utils import extract_metadata_source_filename
-from rsmetacheck.utils.fetch_utils import fetch_text
+from rsmetacheck.utils.fetch_utils import fetch_text, find_source_url, find_repo_root_url
+
+
+def _repo_identity(somef_data: Dict) -> "str | None":
+    """Return 'owner/repo' (lowercased) of the analysed repository, or None."""
+    root = find_repo_root_url(somef_data)
+    if not root:
+        return None
+    m = re.match(r'https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/', root, re.I)
+    if m:
+        return f"{m.group(1).lower()}/{m.group(2).lower()}"
+    m = re.match(r'https?://github\.com/([^/]+)/([^/]+)', root, re.I)
+    if m:
+        return f"{m.group(1).lower()}/{m.group(2).lower()}"
+    return None
+
+
+def _same_repo(url: str, repo_id: str) -> bool:
+    """True when the URL points inside the given 'owner/repo'."""
+    if not url or not repo_id:
+        return False
+    for pat in (r'github\.com/([^/]+)/([^/]+)', r'raw\.githubusercontent\.com/([^/]+)/([^/]+)'):
+        m = re.search(pat, url, re.I)
+        if m and f"{m.group(1).lower()}/{m.group(2).lower()}" == repo_id:
+            return True
+    return False
 
 
 def is_valid_identifier(identifier: str) -> bool:
@@ -182,13 +207,18 @@ def detect_identifier_name_warning(somef_data: Dict, file_name: str) -> Dict:
             if other_identifier:
                 break
 
-    # Fallback: look for a DOI/Zenodo badge in the README itself.
+    # Fallback: look for a DOI/Zenodo badge in the README itself — but only in a
+    # README that belongs to the analysed repository, otherwise a link to another
+    # project drags that project's DOI in as "an identifier exists here".
     if not other_identifier:
         readme_entries = somef_data.get("readme_url")
         if isinstance(readme_entries, list):
+            repo_id = _repo_identity(somef_data)
             for entry in readme_entries:
                 url = (entry.get("result") or {}).get("value")
                 if not isinstance(url, str):
+                    continue
+                if repo_id and not _same_repo(url, repo_id):
                     continue
                 text = fetch_text(url)
                 if not text:
@@ -197,11 +227,29 @@ def detect_identifier_name_warning(somef_data: Dict, file_name: str) -> Dict:
                     r'10\.\d{4,9}/[^\s"\'<>)\]]+|zenodo\.org/badge/[^\s"\'<>)\]]+',
                     text, re.IGNORECASE)
                 if match:
-                    value = match.group(0)
+                    value = match.group(0).rstrip('\\').rstrip('.,;')
                     other_identifiers.append({"value": value, "source": url})
                     other_identifier = value
                     other_source = url
                     break
+
+    # Fallback: a DESCRIPTION file (R packages) can carry the paper DOI in its
+    # prose or in a citation/identifier field. Reading only codemeta, README and
+    # citation missed those.
+    if not other_identifier:
+        description_url = find_source_url(somef_data, "DESCRIPTION")
+        if not description_url:
+            root = find_repo_root_url(somef_data)
+            description_url = (root + "DESCRIPTION") if root else None
+        if description_url:
+            text = fetch_text(description_url)
+            if text:
+                match = re.search(r'10\.\d{4,9}/[^\s"\'<>)`,\]]+', text, re.IGNORECASE)
+                if match:
+                    value = match.group(0).rstrip('.,;')
+                    other_identifiers.append({"value": value, "source": description_url})
+                    other_identifier = value
+                    other_source = description_url
 
     result["codemeta_identifier"] = codemeta_identifier
     result["codemeta_source"] = codemeta_source
