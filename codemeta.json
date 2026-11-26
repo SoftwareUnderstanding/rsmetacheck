@@ -23,7 +23,7 @@
   "name": "rsmetacheck",
   "operatingSystem": "Linux",
   "programmingLanguage": "Python",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "developmentStatus": "active",
   "issueTracker": "https://github.com/SoftwareUnderstanding/rsmetacheck/issues"
 }

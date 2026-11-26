@@ -3,115 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>rsmetacheck &mdash; 0.3.0 vs 0.3.5 Comparison</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #ffffff;
-            color: #333333;
-            margin: 0;
-            padding: 20px;
-        }
-        .nav {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .nav a {
-            color: #3498db;
-            text-decoration: none;
-            font-size: 0.95em;
-            padding: 6px 14px;
-            border: 1px solid #3498db;
-            border-radius: 4px;
-            margin: 0 6px;
-        }
-        .nav a:hover {
-            background-color: #3498db;
-            color: #fff;
-        }
-        h1, h2 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        h1 { margin-bottom: 10px; }
-        h2 { margin-bottom: 20px; }
-        .table-container {
-            max-width: 95%;
-            margin: 0 auto;
-            overflow-x: auto;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-radius: 8px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-        }
-        th, td {
-            padding: 6px 10px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            word-wrap: break-word;
-            word-break: break-word;
-            max-width: 350px;
-        }
-        th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #2c3e50;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        tbody:hover {
-            background-color: #f5f5f5;
-        }
-        .repo-link {
-            color: #3498db;
-            text-decoration: none;
-            word-break: break-all;
-        }
-        .repo-link:hover {
-            text-decoration: underline;
-        }
-        .code-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: bold;
-        }
-        .code-p {
-            background-color: #ffebee;
-            color: #c0392b;
-            border: 1px solid #ffcdd2;
-        }
-        .code-w {
-            background-color: #fff8e1;
-            color: #e67e22;
-            border: 1px solid #ffecb3;
-        }
-        .cell-only-030 {
-            background-color: #ffebee !important;
-        }
-        .cell-only-033 {
-            background-color: #e8f5e9 !important;
-        }
-        .cell-new-033 {
-            background-color: #e8f5e9 !important;
-        }
-        .cell-missing {
-            color: #bbb;
-            font-style: italic;
-            text-align: center;
-        }
-        .section-divider {
-            border: none;
-            border-top: 3px solid #e0e0e0;
-            max-width: 95%;
-            margin: 40px auto 20px auto;
-        }
-    </style>
+    <title>rsmetacheck &mdash; Performance Across Versions</title>
+    <link rel="stylesheet" href="../stylesheets/lab-report.css">
+    <script src="../theme.js" defer></script>
 </head>
 <body>
 
@@ -122,145 +16,136 @@
         <a href="charts.html">Charts</a>
     </div>
 
-    <h1>0.3.0 vs 0.3.5 &mdash; Comparison</h1>
+    <h1>Performance Across Versions</h1>
 
-    <p style="text-align: center; color: #555; font-size: 0.95em; line-height: 1.5; max-width: 800px; margin: 0 auto 20px auto;">
-        This page compares the detection results of rsmetacheck version 0.3.0 and
-        version 0.3.5 across 150 repositories. What is highlighed in red is what was previously falsly flagged and fixed in the latest
-        release, and what is highlighted in green is what was not being detected in the ealier version of rsmetacheck and fixed in the latest
-        release.
+    <p class="page-intro">
+        Precision and recall of rsmetacheck's pitfall and warning detection across three versions
+        (0.3.0, 0.3.6 and 0.3.9), measured on a fixed corpus of 150 repositories against our manual annotation.
     </p>
 
-    <p id="summary-text" style="text-align: center; color: #444; font-size: 1.05em; line-height: 1.4;"></p>
-
-    <hr class="section-divider">
-    <h2>Repository-Level Comparison</h2>
-
     <div class="table-container">
-        <table id="comparisonTable">
+        <table id="summaryTable">
             <thead>
                 <tr>
-                    <th>Repository</th>
-                    <th>Code</th>
-                    <th>0.3.0 Source</th>
-                    <th>0.3.0 Description</th>
-                    <th>0.3.5 Source</th>
-                    <th>0.3.5 Description</th>
+                    <th>Version</th>
+                    <th class="num">Confirmed (TP)</th>
+                    <th class="num">Wrong (FP)</th>
+                    <th class="num">Missed (FN)</th>
+                    <th class="num">Precision</th>
+                    <th class="num">Recall</th>
                 </tr>
             </thead>
+            <tbody></tbody>
         </table>
     </div>
 
+    <hr class="section-divider">
+    <h2>Key improvements</h2>
+    <ul class="note-list">
+        <li><span class="rule-code">W002</span> 25 false positives &rarr; 0</li>
+        <li><span class="rule-code">P013</span> 12 false positives &rarr; 0</li>
+        <li><span class="rule-code">W003</span> 24 false positives &rarr; 11 &rarr; 0</li>
+        <li><span class="rule-code">W004</span> 37 misses recovered</li>
+        <li><span class="rule-code">P019</span> 40 misses &rarr; 5</li>
+    </ul>
+
+    <hr class="section-divider">
+    <h2>Per-rule detail</h2>
+    <p class="legend">Each cell reads Confirmed / Wrong / Missed, in that order.</p>
+    <div class="table-container">
+        <table id="ruleTable">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Rule</th>
+                    <th class="num">0.3.0</th>
+                    <th class="num">0.3.6</th>
+                    <th class="num">0.3.9</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <hr class="section-divider">
+    <h2>Notes</h2>
+    <ul class="note-list">
+        <li>Harness figures reflect agreement with the <em>arbiter</em> (a second implementation of the 29 checks),
+            not hand-verified reality.</li>
+        <li>Recall looks flat only because of one stale arbiter rule: <span class="rule-code">P002</span> &mdash;
+            42 of 0.3.9's 89 misses are correct silences (the arbiter flags licence-family placeholders that are
+            not defects).</li>
+        <li>The ground truth is not complete: its P002 entries predate the licence-family distinction.</li>
+        <li>0.3.0 exists only as a summary; its run was reconstructed at rule level against live branches, so some
+            rows are repository drift.</li>
+        <li>The arbiter implements no W008; zero occurrences on this corpus.</li>
+        <li>Raw runs wobble by a row or two on checks that fetch live data (W004, W006, P008, P011, P015).</li>
+    </ul>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const cmpTable = document.querySelector('#comparisonTable');
-
-            Promise.all([
-                fetch('summary_0_3_0.json').then(r => r.json()),
-                fetch('summary_0_3_5.json').then(r => r.json()),
-                fetch('summary_pitfalls_warnings.json').then(r => r.json())
-            ])
-            .then(([data030, data033, gtData]) => {
-                buildComparisonTable(cmpTable, data030, data033, gtData);
-            })
-            .catch(err => {
-                console.error('Failed to load data:', err);
-                cmpTable.innerHTML += '<tbody><tr><td colspan="6" style="text-align:center;color:red;">Error loading data.</td></tr></tbody>';
-            });
+            fetch('../page_data.json')
+                .then(r => r.json())
+                .then(data => {
+                    buildSummary(data.versions);
+                    buildRuleTable(data.versions, data.rules);
+                })
+                .catch(err => console.error('Failed to load data:', err));
         });
 
-        function buildComparisonTable(table, data030, data033, gtData) {
-            const gtRepoOrder = [];
-            const gtCommitMap = {};
-            for (const entry of Object.values(gtData)) {
-                const url = (entry.url || '').replace(/\/$/, "").split("/");
-                if (url.length >= 2) {
-                    const name = url.slice(-2).join("/");
-                    gtRepoOrder.push(name);
-                    gtCommitMap[name] = entry['commit ID'] || '';
-                }
+        function buildSummary(versions) {
+            const tbody = document.querySelector('#summaryTable tbody');
+            const order = ['0.3.0', '0.3.6', '0.3.9'];
+            for (const v of order) {
+                const h = versions[v] && versions[v].harness;
+                if (!h) continue;
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td class="mono-cell">' + v + '</td>' +
+                    '<td class="num">' + h.confirmed + '</td>' +
+                    '<td class="num">' + h.wrong + '</td>' +
+                    '<td class="num">' + h.missed + '</td>' +
+                    '<td class="num">' + fmt(h.precision) + '%</td>' +
+                    '<td class="num">' + fmt(h.recall) + '%</td>';
+                tbody.appendChild(tr);
             }
+        }
 
-            const commonRepos = new Set(
-                [...Object.keys(data030)].filter(r => data033[r] && gtCommitMap[r])
-            );
-
-            for (const repoName of gtRepoOrder) {
-                if (!commonRepos.has(repoName)) continue;
-                const r030 = data030[repoName];
-                const r033 = data033[repoName];
-
-                const codes030 = Object.assign({}, r030.pitfalls || {}, r030.warnings || {});
-                const codes033 = Object.assign({}, r033.pitfalls || {}, r033.warnings || {});
-                const allCodes = Array.from(
-                    new Set([...Object.keys(codes030), ...Object.keys(codes033)])
-                ).sort((a, b) => {
-                    const ta = a.startsWith('P') ? 0 : 1;
-                    const tb = b.startsWith('P') ? 0 : 1;
-                    if (ta !== tb) return ta - tb;
-                    return a.localeCompare(b);
+        function buildRuleTable(versions, rules) {
+            const tbody = document.querySelector('#ruleTable tbody');
+            const order = ['0.3.0', '0.3.6', '0.3.9'];
+            const codes = Object.keys(rules).sort((a, b) => {
+                const ta = a.startsWith('P') ? 0 : 1;
+                const tb = b.startsWith('P') ? 0 : 1;
+                if (ta !== tb) return ta - tb;
+                return a.localeCompare(b, undefined, { numeric: true });
+            });
+            for (const code of codes) {
+                const name = rules[code].name;
+                const vals = order.map(v => {
+                    const pr = versions[v] && versions[v].per_rule && versions[v].per_rule[code] || {};
+                    return { c: pr.confirmed || 0, w: pr.wrong || 0, m: pr.missed || 0 };
                 });
+                // Skip rules that never fired on this corpus (0 / 0 / 0 across all versions).
+                if (vals.every(x => x.c === 0 && x.w === 0 && x.m === 0)) continue;
 
-                if (allCodes.length === 0) continue;
-
-                const tbody = document.createElement('tbody');
-                const url = r030.url || r033.url;
-                const isNew033 = !gtCommitMap[repoName];
-
-                allCodes.forEach((code, i) => {
-                    const entry030 = codes030[code];
-                    const entry033 = codes033[code];
-                    const only030 = entry030 && !entry033;
-                    const only033 = entry033 && !entry030;
-                    const type = code.startsWith('P') ? 'p' : 'w';
-
-                    const tr = document.createElement('tr');
-
-                    if (i === 0) {
-                        const tdRepo = document.createElement('td');
-                        const aRepo = document.createElement('a');
-                        aRepo.href = url;
-                        aRepo.textContent = repoName;
-                        aRepo.className = 'repo-link';
-                        aRepo.target = '_blank';
-                        tdRepo.appendChild(aRepo);
-                        tdRepo.rowSpan = allCodes.length;
-                        if (isNew033) tdRepo.classList.add('cell-new-033');
-                        tr.appendChild(tdRepo);
-                    }
-
-                    const tdCode = document.createElement('td');
-                    const spanCode = document.createElement('span');
-                    spanCode.textContent = code;
-                    spanCode.className = `code-badge code-${type}`;
-                    tdCode.appendChild(spanCode);
-                    tr.appendChild(tdCode);
-
-                    const cellDefs = [
-                        { data: entry030, key: 'source_file', ver: only030 ? '030' : '' },
-                        { data: entry030, key: 'description', ver: only030 ? '030' : '' },
-                        { data: entry033, key: 'source_file', ver: only033 ? '033' : '' },
-                        { data: entry033, key: 'description', ver: only033 ? '033' : '' }
-                    ];
-
-                    for (const { data, key, ver } of cellDefs) {
-                        const td = document.createElement('td');
-                        if (data) {
-                            td.textContent = data[key] || '';
-                        } else {
-                            td.textContent = '\u2014';
-                            td.classList.add('cell-missing');
-                        }
-                        if (ver === '030') td.classList.add('cell-only-030');
-                        if (ver === '033') td.classList.add('cell-only-033');
-                        tr.appendChild(td);
-                    }
-
-                    tbody.appendChild(tr);
-                });
-
-                table.appendChild(tbody);
+                const tr = document.createElement('tr');
+                const badge = code.startsWith('W') ? 'code-w' : 'code-p';
+                const cells = vals.map(x =>
+                    '<td class="num">' + x.c + ' / ' + x.w + ' / ' + x.m + '</td>'
+                ).join('');
+                tr.innerHTML =
+                    '<td><span class="code-badge ' + badge + '">' + code + '</span></td>' +
+                    '<td>' + esc(name) + '</td>' + cells;
+                tbody.appendChild(tr);
             }
+        }
+
+        function fmt(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
         }
     </script>
 </body>

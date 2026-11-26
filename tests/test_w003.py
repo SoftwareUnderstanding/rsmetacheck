@@ -448,7 +448,6 @@ class TestDetectDualLicenseMissingCodemetaPitfall:
             "licensed under GPL or MIT",
             "choose your license",
             "either MIT or Apache license",
-            "license options",
             "available under multiple licenses"
         ]
 

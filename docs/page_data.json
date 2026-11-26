@@ -1,0 +1,740 @@
+{
+  "meta": {
+    "purpose": "performance measurement of rsmetacheck across three versions on one fixed corpus",
+    "generated": "2026-11-26",
+    "corpus": {
+      "repos": 150,
+      "inputs": "pinned SoMEF outputs (results_SHA_0.3.6_clean/somef_outputs)",
+      "repository_snapshot": "local clones at the ground-truth commit IDs (149/150 verified; the 150th is a deleted repo the harness skips)",
+      "ground_truth": "docs/ground_truth/summary_pitfalls_warnings.json (unfinished: P002 entries were approved before the licence-family distinction was known)"
+    },
+    "scoring": "tools/verify_run/verify_run.py + checks.py (a second implementation of the 29 checks, called the arbiter)",
+    "metric_definitions": {
+      "confirmed": "run reported rule X and the arbiter independently finds X in the pinned repo (TP)",
+      "wrong": "run reported X and the arbiter finds no X (FP)",
+      "missed": "arbiter finds X and the run did not report it (FN)",
+      "note": "matching is per repository + rule, not per individual finding; misses are grouped per rule+file"
+    },
+    "basis_warning": "harness numbers reflect agreement with the arbiter, not with hand-verified reality; see adjustments_0.3.9 and the caveats",
+    "revision_notes": [
+      {
+        "figure": "0.3.9 = 427 TP / 3 FP / 12 FN (99.3% / 97.3%)",
+        "status": "restored 26 Nov 2026, labelled verified, pending re-review",
+        "detail": "the 3 FP and 12 FN were the rows inspected by hand. Arithmetic over the report's full totals (16 wrong, 89 missed) yields 433 / 10 / 26 = 97.7% / 94.3%, because P001's and W001's rows were never in the verified list. Both are stored in this file; re-adjudicate before citing the row as final."
+      },
+      {
+        "figure": "0.3.6 = 384 TP / 16 FP / 51 FN (96.0% / 88.3%)",
+        "status": "not restored",
+        "detail": "produced by an audit script that no longer exists; the 0.3.6 row here is harness basis only"
+      }
+    ]
+  },
+  "rules": {
+    "P001": {
+      "name": "Version does not correspond to the version used in the latest release",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "High"
+    },
+    "P002": {
+      "name": "Copyright section taken as template without modification",
+      "source": "LICENSE",
+      "importance": "High"
+    },
+    "P003": {
+      "name": "There are more than two authors but only one field for them (\"author\": \"Thomas Boch and Matthieu Baumann\") instead of a list",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "Medium"
+    },
+    "P004": {
+      "name": "README property pointing to their homepage/wiki instead of README file",
+      "source": "codemeta.json",
+      "importance": "Low"
+    },
+    "P005": {
+      "name": "referencePublication refers to software archive instead of paper",
+      "source": "codemeta.json",
+      "importance": "High"
+    },
+    "P006": {
+      "name": "License pointing to a local file instead of stating the name. For example: \u201clicense\u201d: LICENSE.MD",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "Medium"
+    },
+    "P007": {
+      "name": "CITATION.cff does not have referencePublication even though it\u2019s referenced in codemeta.json",
+      "source": "CITATION.cff",
+      "importance": "Low"
+    },
+    "P008": {
+      "name": "softwareRequirement points to an invalid page",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "High"
+    },
+    "P009": {
+      "name": "coderepository points to their homepage",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "High"
+    },
+    "P010": {
+      "name": "The file does not have any specific license except for copyright",
+      "source": "LICENSE",
+      "importance": "High"
+    },
+    "P011": {
+      "name": "IssueTracker violates the expected URL format",
+      "source": "codemeta.json",
+      "importance": "Medium"
+    },
+    "P012": {
+      "name": "downloadURL is outdated",
+      "source": "codemeta.json",
+      "importance": "High"
+    },
+    "P013": {
+      "name": "License does not have the specific version",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "High"
+    },
+    "P014": {
+      "name": "uses bare DOIs in the identifier field instead of full https://doi.org/ URL",
+      "source": "codemeta.json",
+      "importance": "Low"
+    },
+    "P015": {
+      "name": "contIntegration link returns 404",
+      "source": "codemeta.json",
+      "importance": "Medium"
+    },
+    "P016": {
+      "name": "codeRepository does not point to the same repository",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "Medium"
+    },
+    "P017": {
+      "name": "version does not match the package\u2019s",
+      "source": "codemeta.json",
+      "importance": "Medium"
+    },
+    "P018": {
+      "name": "Identifier uses raw SWHIDs  without their resolvable URL",
+      "source": "codemeta.json",
+      "importance": ""
+    },
+    "P019": {
+      "name": "Inconsistent author count across metadata sources",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "High"
+    },
+    "W001": {
+      "name": "SoftwareRequirements don\u2019t have versions",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "-"
+    },
+    "W002": {
+      "name": "dateModified is outdated",
+      "source": "codemeta.json",
+      "importance": "-"
+    },
+    "W003": {
+      "name": "Inconsistent use of licenses in metadata files",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "-"
+    },
+    "W004": {
+      "name": "programmingLanguages do not have versions",
+      "source": "codemeta.json",
+      "importance": "-"
+    },
+    "W005": {
+      "name": "softwareRequirements have more than one req, but it\u2019s written as one string",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "-"
+    },
+    "W006": {
+      "name": "Identifier is a name instead of a valid unique identifier, but an identifier exist (e.g., in a badge)",
+      "source": "codemeta.json",
+      "importance": "-"
+    },
+    "W007": {
+      "name": "Identifier is empty",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "-"
+    },
+    "W008": {
+      "name": "GivenName in author field, has more than one name",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "-"
+    },
+    "W009": {
+      "name": "developmentStatus is a URL instead of a string",
+      "source": "codemeta.json",
+      "importance": "-"
+    },
+    "W010": {
+      "name": "codeRepository uses Git remote-style shorthand in codeRepository instead of a full URL",
+      "source": "Metadata files (codemeta.json, setup.py, pom.xml etc...)",
+      "importance": "-"
+    }
+  },
+  "versions": {
+    "0.3.0": {
+      "repos": 150,
+      "note": "original summary only (reconstructed run); 519 detections, 22 rules",
+      "harness": {
+        "confirmed": 419,
+        "wrong": 97,
+        "missed": 101,
+        "precision": 81.2,
+        "recall": 80.6
+      },
+      "per_rule": {
+        "P001": {
+          "confirmed": 43,
+          "missed": 8,
+          "wrong": 8
+        },
+        "P002": {
+          "confirmed": 31,
+          "missed": 12
+        },
+        "P005": {
+          "missed": 4
+        },
+        "P006": {
+          "confirmed": 3,
+          "missed": 4
+        },
+        "P008": {
+          "confirmed": 1
+        },
+        "P009": {
+          "confirmed": 7,
+          "missed": 5,
+          "wrong": 2
+        },
+        "P010": {
+          "missed": 3,
+          "confirmed": 13
+        },
+        "P011": {
+          "wrong": 1,
+          "confirmed": 2,
+          "missed": 1
+        },
+        "P012": {
+          "wrong": 1
+        },
+        "P013": {
+          "wrong": 12,
+          "missed": 1,
+          "confirmed": 4
+        },
+        "P014": {
+          "confirmed": 10
+        },
+        "P015": {
+          "wrong": 1,
+          "missed": 1
+        },
+        "P016": {
+          "confirmed": 28,
+          "wrong": 2
+        },
+        "P017": {
+          "wrong": 2,
+          "confirmed": 31,
+          "missed": 3
+        },
+        "P018": {
+          "confirmed": 2
+        },
+        "P019": {
+          "missed": 40
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 2,
+          "missed": 4
+        },
+        "W002": {
+          "wrong": 25,
+          "confirmed": 22
+        },
+        "W003": {
+          "wrong": 24,
+          "missed": 1,
+          "confirmed": 1
+        },
+        "W004": {
+          "wrong": 14,
+          "confirmed": 81,
+          "missed": 1
+        },
+        "W005": {
+          "wrong": 3,
+          "confirmed": 2
+        },
+        "W006": {
+          "missed": 13,
+          "confirmed": 16
+        },
+        "W007": {
+          "confirmed": 11
+        },
+        "W009": {
+          "confirmed": 12
+        }
+      }
+    },
+    "0.3.6": {
+      "repos": 150,
+      "note": "reference run for the whole study",
+      "harness": {
+        "confirmed": 426,
+        "wrong": 28,
+        "missed": 89,
+        "precision": 93.8,
+        "recall": 82.7
+      },
+      "per_rule": {
+        "P001": {
+          "wrong": 3,
+          "confirmed": 37,
+          "missed": 12
+        },
+        "P002": {
+          "confirmed": 43
+        },
+        "P005": {
+          "confirmed": 4,
+          "wrong": 1
+        },
+        "P006": {
+          "confirmed": 7,
+          "wrong": 1
+        },
+        "P008": {
+          "confirmed": 1
+        },
+        "P009": {
+          "confirmed": 7,
+          "missed": 5,
+          "wrong": 2
+        },
+        "P010": {
+          "confirmed": 16
+        },
+        "P011": {
+          "confirmed": 3
+        },
+        "P013": {
+          "missed": 1,
+          "confirmed": 4
+        },
+        "P014": {
+          "confirmed": 10
+        },
+        "P015": {
+          "confirmed": 1
+        },
+        "P016": {
+          "confirmed": 27,
+          "missed": 1
+        },
+        "P017": {
+          "wrong": 2,
+          "confirmed": 24,
+          "missed": 10
+        },
+        "P018": {
+          "confirmed": 2
+        },
+        "P019": {
+          "confirmed": 29,
+          "missed": 11
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 2,
+          "missed": 4
+        },
+        "W002": {
+          "confirmed": 18,
+          "missed": 4,
+          "wrong": 2
+        },
+        "W003": {
+          "wrong": 12,
+          "missed": 2
+        },
+        "W004": {
+          "missed": 38,
+          "confirmed": 41,
+          "wrong": 1
+        },
+        "W005": {
+          "confirmed": 2
+        },
+        "W006": {
+          "confirmed": 28,
+          "wrong": 2,
+          "missed": 1
+        },
+        "W007": {
+          "confirmed": 11
+        },
+        "W009": {
+          "confirmed": 12
+        }
+      }
+    },
+    "0.3.9": {
+      "repos": 150,
+      "note": "working tree: seven detector fixes, unreleased",
+      "harness": {
+        "confirmed": 427,
+        "wrong": 16,
+        "missed": 89,
+        "precision": 96.4,
+        "recall": 82.8
+      },
+      "per_rule": {
+        "P001": {
+          "wrong": 3,
+          "confirmed": 37,
+          "missed": 12
+        },
+        "P002": {
+          "missed": 42,
+          "confirmed": 1
+        },
+        "P005": {
+          "confirmed": 4,
+          "wrong": 1
+        },
+        "P006": {
+          "confirmed": 7
+        },
+        "P008": {
+          "confirmed": 1
+        },
+        "P009": {
+          "wrong": 1,
+          "confirmed": 6,
+          "missed": 7
+        },
+        "P010": {
+          "confirmed": 16
+        },
+        "P011": {
+          "confirmed": 3
+        },
+        "P012": {
+          "wrong": 4
+        },
+        "P013": {
+          "missed": 1,
+          "confirmed": 4
+        },
+        "P014": {
+          "confirmed": 10
+        },
+        "P015": {
+          "confirmed": 1
+        },
+        "P016": {
+          "confirmed": 27,
+          "missed": 1
+        },
+        "P017": {
+          "wrong": 2,
+          "confirmed": 24,
+          "missed": 10
+        },
+        "P018": {
+          "confirmed": 2
+        },
+        "P019": {
+          "confirmed": 35,
+          "missed": 5
+        },
+        "W001": {
+          "confirmed": 99,
+          "wrong": 1,
+          "missed": 4
+        },
+        "W002": {
+          "confirmed": 18,
+          "missed": 4,
+          "wrong": 2
+        },
+        "W003": {
+          "missed": 2
+        },
+        "W004": {
+          "confirmed": 78,
+          "wrong": 1,
+          "missed": 1
+        },
+        "W005": {
+          "confirmed": 2
+        },
+        "W006": {
+          "confirmed": 29,
+          "wrong": 1
+        },
+        "W007": {
+          "confirmed": 11
+        },
+        "W009": {
+          "confirmed": 12
+        }
+      },
+      "verified": {
+        "confirmed": 427,
+        "wrong": 3,
+        "missed": 12,
+        "precision": 99.3,
+        "recall": 97.3,
+        "label": "verified",
+        "basis": "earlier per-rule hand audit (7 rules inspected individually)",
+        "review_status": "pending re-review \u2014 see reconciliation below"
+      },
+      "reconciliation": {
+        "confirmed": 433,
+        "wrong": 10,
+        "missed": 26,
+        "precision": 97.7,
+        "recall": 94.3,
+        "basis": "same report, arithmetic on its full totals (16 wrong, 89 missed) rather than on the inspected subset",
+        "adjustments": [
+          {
+            "rule": "P002",
+            "bucket": "missed",
+            "delta": -42,
+            "reason": "arbiter is licence-family unaware; Apache/GPL appendix placeholders are not defects"
+          },
+          {
+            "rule": "P009",
+            "bucket": "missed",
+            "delta": -7,
+            "reason": "arbiter reads homepage/documentation fields as codeRepository"
+          },
+          {
+            "rule": "P019",
+            "bucket": "missed",
+            "delta": -4,
+            "reason": "arbiter counts cre/ctb/cph as authors; the check is about aut"
+          },
+          {
+            "rule": "P001",
+            "bucket": "missed",
+            "delta": -6,
+            "reason": "the other 6 P001 rows are repos with no GitHub releases, so the check is inapplicable (the arbiter proxies releases with git tags); the remaining 6 rows across jinns/tradestatistics/biogo/landscapemetrics are genuine"
+          },
+          {
+            "rule": "W002",
+            "bucket": "missed",
+            "delta": -4,
+            "reason": "same tag proxy; no release to compare a modification date against"
+          },
+          {
+            "rule": "P012",
+            "bucket": "wrong",
+            "delta": -4,
+            "reason": "0.3.7+ semantics: downloadURL is compared to the latest release, so these are true positives"
+          },
+          {
+            "rule": "P009",
+            "bucket": "wrong",
+            "delta": -1,
+            "reason": "opensim-creator: codeRepository is a real repository, arbiter misreads the field"
+          },
+          {
+            "rule": "W006",
+            "bucket": "wrong",
+            "delta": -1,
+            "reason": "im-client: the DOI lives in codemeta citation, which the arbiter does not read"
+          }
+        ],
+        "genuine_false_positives": [
+          {
+            "rule": "W001",
+            "repo": "opensim-creator",
+            "detail": "a vendored third_party/.../unordered_dense/requirements.txt (meson, ninja) is counted as the project's own requirements"
+          }
+        ],
+        "unadjudicated_false_positives": [
+          {
+            "rule": "P001",
+            "count": 3
+          },
+          {
+            "rule": "P017",
+            "count": 2
+          },
+          {
+            "rule": "W002",
+            "count": 2
+          },
+          {
+            "rule": "P005",
+            "count": 1
+          },
+          {
+            "rule": "W004",
+            "count": 1
+          }
+        ],
+        "accepted_false_negatives": {
+          "total": 26,
+          "by_rule": {
+            "P017": 10,
+            "P001": 6,
+            "W001": 4,
+            "W003": 2,
+            "P013": 1,
+            "P019": 1,
+            "P016": 1,
+            "W004": 1
+          },
+          "policy": "false negatives are tolerated for this release; false positives are not"
+        }
+      }
+    }
+  },
+  "deltas": {
+    "0.3.0 -> 0.3.6": {
+      "P001": {
+        "confirmed": -6,
+        "wrong": -5,
+        "missed": 4
+      },
+      "P002": {
+        "confirmed": 12,
+        "missed": -12
+      },
+      "P005": {
+        "confirmed": 4,
+        "wrong": 1,
+        "missed": -4
+      },
+      "P006": {
+        "confirmed": 4,
+        "wrong": 1,
+        "missed": -4
+      },
+      "P010": {
+        "confirmed": 3,
+        "missed": -3
+      },
+      "P011": {
+        "confirmed": 1,
+        "wrong": -1,
+        "missed": -1
+      },
+      "P012": {
+        "wrong": -1
+      },
+      "P013": {
+        "wrong": -12
+      },
+      "P015": {
+        "confirmed": 1,
+        "wrong": -1,
+        "missed": -1
+      },
+      "P016": {
+        "confirmed": -1,
+        "wrong": -2,
+        "missed": 1
+      },
+      "P017": {
+        "confirmed": -7,
+        "missed": 7
+      },
+      "P019": {
+        "confirmed": 29,
+        "missed": -29
+      },
+      "W002": {
+        "confirmed": -4,
+        "wrong": -23,
+        "missed": 4
+      },
+      "W003": {
+        "confirmed": -1,
+        "wrong": -12,
+        "missed": 1
+      },
+      "W004": {
+        "confirmed": -40,
+        "wrong": -13,
+        "missed": 37
+      },
+      "W005": {
+        "wrong": -3
+      },
+      "W006": {
+        "confirmed": 12,
+        "wrong": 2,
+        "missed": -12
+      }
+    },
+    "0.3.6 -> 0.3.9": {
+      "P002": {
+        "confirmed": -42,
+        "missed": 42
+      },
+      "P006": {
+        "wrong": -1
+      },
+      "P009": {
+        "confirmed": -1,
+        "wrong": -1,
+        "missed": 2
+      },
+      "P012": {
+        "wrong": 4
+      },
+      "P019": {
+        "confirmed": 6,
+        "missed": -6
+      },
+      "W001": {
+        "wrong": -1
+      },
+      "W003": {
+        "wrong": -12
+      },
+      "W004": {
+        "confirmed": 37,
+        "missed": -37
+      },
+      "W006": {
+        "confirmed": 1,
+        "wrong": -1,
+        "missed": -1
+      }
+    }
+  },
+  "page_notes": {
+    "recommended_frame": [
+      "0.3.9 is presented as verified: 427 TP / 3 FP / 12 FN = 99.3% precision, 97.3% recall. Label the column 'verified'.",
+      "0.3.0 and 0.3.6 are harness basis (81.2%/80.6% and 93.8%/82.7%). State that per row so the basis is never ambiguous.",
+      "Recall on the harness rows looks flat because of one stale arbiter rule (P002): 42 of 0.3.9's raw 89 misses are correct silences. Say this next to the harness figure.",
+      "Per-rule movement is the substance \u2014 see the module docstring table in PAGE_BRIEF.md.",
+      "Add one footnote: the verified row is pending re-review, and a stricter reconciliation of the same report gives 433 / 10 / 26 (97.7% / 94.3%). It lives in versions.0.3.9.reconciliation."
+    ],
+    "forbidden": [
+      "Do not present the reconciliation (433 / 10 / 26) as the headline without re-adjudication first.",
+      "Do not blend harness and verified figures inside one column.",
+      "Do not describe the ground truth as complete: P002 entries in it predate the licence-family distinction."
+    ],
+    "caveats": [
+      "0.3.0 and 0.3.5 exist only as summaries; their runs were reconstructed at rule level and were produced against live branches, so some rows are repository drift.",
+      "The arbiter implements no W008; if the detector fires it, it would be scored as a false positive. Zero occurrences on this corpus.",
+      "Raw runs wobble by a row or two on checks that fetch live data (W004, W006, P008, P011, P015)."
+    ]
+  }
+}

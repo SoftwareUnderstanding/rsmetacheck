@@ -61,7 +61,7 @@ def get_other_metadata_versions(somef_data: Dict) -> list:
         return []
 
     other_versions = []
-    metadata_sources = ["codemeta.json", "DESCRIPTION", "composer.json", "package.json", "pom.xml", "pyproject.toml", "requirements.txt", "setup.py"]
+    metadata_sources = ["codemeta.json", "DESCRIPTION", "composer.json", "package.json", "pom.xml", "pyproject.toml", "requirements.txt", "setup.py", "Cargo.toml", "bower.json"]
 
     for entry in version_entries:
         source = entry.get("source", "")
